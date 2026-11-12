@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<title>peakZeit · Jarvis</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{--bg:#0B0B0F;--y:#FFE600;--r:#FF2D55;--c:#5CE1FF;--g:#7DFFB0;--t:#fff;--m:#a39cab;--glass:rgba(26,22,34,.62)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--t);font-family:-apple-system,"SF Pro Display","Segoe UI",Inter,sans-serif;overflow-x:hidden}
+canvas#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+.wrap{position:relative;z-index:1;padding:18px 16px calc(28px + env(safe-area-inset-bottom));max-width:520px;margin:0 auto}
+/* Kopf mit Reaktor */
+.hero{position:relative;height:300px;display:flex;align-items:center;justify-content:center;perspective:700px}
+.core{position:absolute;width:250px;height:250px;transform-style:preserve-3d;animation:float 6s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-8px) rotateX(8deg)}}
+.ring{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(92,225,255,.55)}
+.ring.r1{border-style:dashed;animation:spin 18s linear infinite}
+.ring.r2{inset:30px;border-color:rgba(255,45,85,.6);animation:spin 11s linear infinite reverse}
+.ring.r3{inset:58px;border:6px solid transparent;border-top-color:var(--y);border-right-color:rgba(255,230,0,.25);animation:spin 3.2s linear infinite;filter:drop-shadow(0 0 10px var(--y))}
+.ring.r4{inset:-14px;border-color:rgba(255,230,0,.18);border-width:1px;transform:rotateX(70deg);animation:tilt 9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes tilt{to{transform:rotateX(70deg) rotateZ(360deg)}}
+.hex{position:absolute;inset:88px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);
+  background:radial-gradient(circle at 40% 35%,#FFE3EA,#FF3B5C 45%,#4A0C1E 85%);animation:pulse 2.4s ease-in-out infinite;
+  display:flex;align-items:center;justify-content:center;font-weight:900;font-size:30px}
+@keyframes pulse{50%{filter:brightness(1.35) drop-shadow(0 0 22px #FF3B5C);transform:scale(1.06)}}
+.sat{position:absolute;left:50%;top:-6px;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:var(--y);box-shadow:0 0 14px var(--y)}
+.hello{position:absolute;bottom:0;left:0;right:0;text-align:center}
+.hello h1{font-size:26px;font-weight:800;letter-spacing:-.3px;opacity:0;animation:rise .8s .3s forwards}
+.hello p{margin-top:4px;color:var(--m);font-size:14px;opacity:0;animation:rise .8s .5s forwards}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.word{font-weight:900;font-size:15px;letter-spacing:.5px;text-align:center;margin-bottom:6px}
+.word b{color:var(--y)}
+/* Karten */
+.card{position:relative;margin-top:14px;padding:16px;border-radius:22px;background:var(--glass);border:1px solid rgba(255,255,255,.08);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);opacity:0;transform:translateY(24px) scale(.98);transition:all .6s cubic-bezier(.2,1.1,.3,1)}
+.card.in{opacity:1;transform:none}
+.card h3{font-size:11px;letter-spacing:3px;color:var(--y);font-weight:800;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+.card h3 em{font-style:normal;color:var(--m);letter-spacing:.5px;font-weight:600;text-transform:none}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px;perspective:600px}
+.stat{padding:12px 10px;border-radius:16px;background:rgba(255,255,255,.05);text-align:center;transform-style:preserve-3d;animation:wob 5s ease-in-out infinite}
+.stat:nth-child(2){animation-delay:-1.6s}.stat:nth-child(3){animation-delay:-3.2s}
+@keyframes wob{50%{transform:rotateY(10deg) rotateX(-6deg)}}
+.stat b{display:block;font-size:24px;font-weight:900;transform:translateZ(18px)}
+.stat small{display:block;margin-top:2px;font-size:10px;color:var(--m);letter-spacing:1px}
+.stat i{display:block;font-style:normal;font-size:11px;color:var(--g);margin-top:3px}
+.stat.main b{color:var(--y);text-shadow:0 0 18px rgba(255,230,0,.45)}
+/* Zeitleiste */
+.tl{margin-top:12px;position:relative;padding-left:22px}
+.tl:before{content:"";position:absolute;left:7px;top:4px;bottom:4px;width:2px;background:linear-gradient(var(--y),var(--r))}
+.ev{position:relative;padding:8px 0 10px}
+.ev:before{content:"";position:absolute;left:-20px;top:13px;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2px solid var(--y)}
+.ev.now:before{background:var(--y);box-shadow:0 0 0 6px rgba(255,230,0,.2);animation:ping 1.6s infinite}
+.ev.done{opacity:.5}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(255,230,0,.6)}100%{box-shadow:0 0 0 12px rgba(255,230,0,0)}}
+.ev b{font-size:15px}.ev span{color:var(--y);font-weight:800;margin-right:8px}
+.ev small{display:block;color:var(--m);font-size:12px;margin-top:3px;line-height:1.4}
+.empty{color:var(--m);font-size:13px;margin-top:10px;line-height:1.5}
+/* Live */
+.live{display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 12px;border-radius:14px;background:rgba(255,45,85,.12);border:1px solid rgba(255,45,85,.35)}
+.live .d{width:10px;height:10px;border-radius:50%;background:var(--r);animation:pr 1.4s infinite}
+@keyframes pr{0%{box-shadow:0 0 0 0 rgba(255,45,85,.7)}100%{box-shadow:0 0 0 12px rgba(255,45,85,0)}}
+.live b{flex:1}
+/* Liste */
+.li{display:flex;gap:10px;align-items:center;margin-top:10px}
+.li .n{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;background:rgba(255,230,0,.14);color:var(--y);flex:none}
+.li div{flex:1;font-size:14px;line-height:1.3}.li small{color:var(--m);font-size:12px}
+.ring-s{width:34px;height:34px;flex:none}
+/* Knöpfe */
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.btn{padding:14px 10px;border-radius:16px;border:none;font:inherit;font-weight:800;font-size:14px;color:#111;background:var(--y);
+  box-shadow:0 10px 30px rgba(255,230,0,.25);transition:transform .15s}
+.btn.alt{background:rgba(255,255,255,.08);color:#fff;box-shadow:none;border:1px solid rgba(255,255,255,.1)}
+.btn:active{transform:scale(.95)}
+.foot{text-align:center;color:var(--m);font-size:11px;margin-top:18px}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<div class="wrap">
+  <div class="word">peak<b>Z</b>eit · JARVIS</div>
+  <div class="hero">
+    <div class="core"><div class="ring r4"></div><div class="ring r1"></div><div class="ring r2"><div class="sat"></div></div><div class="ring r3"></div><div class="hex">J</div></div>
+    <div class="hello"><h1 id="hello">Hallo, Boss.</h1><p id="sub"></p></div>
+  </div>
+
+  <div class="card" id="c_stats"><h3>Kanal <em id="handle"></em></h3>
+    <div class="stats">
+      <div class="stat main"><b data-n="followers">–</b><small>FOLLOWER</small><i id="f_day"></i></div>
+      <div class="stat"><b data-n="likes">–</b><small>LIKES</small><i id="l_day"></i></div>
+      <div class="stat"><b data-n="videos">–</b><small>VIDEOS</small><i></i></div>
+    </div></div>
+
+  <div class="card" id="c_live" style="display:none"><h3>Gerade live</h3><div id="lives"></div></div>
+
+  <div class="card" id="c_plan"><h3>Heute posten <em id="plan_n"></em></h3><div class="tl" id="plan"></div></div>
+
+  <div class="card" id="c_agenda"><h3>Termine &amp; Aufgaben</h3><div class="tl" id="agenda"></div></div>
+
+  <div class="card" id="c_clips"><h3>Letzte Clips <em>KI-Viral-Score</em></h3><div id="clips"></div></div>
+
+  <div class="card" id="c_radar"><h3>Konkurrenz-Radar</h3><div id="radar"></div></div>
+
+  <div class="btns">
+    <button class="btn" data-cmd="clips">🎬 Clips schicken</button>
+    <button class="btn" data-cmd="plan">🗓 Woche planen</button>
+    <button class="btn alt" data-cmd="heute_senden">📲 Heutige Videos</button>
+    <button class="btn alt" data-cmd="live">🔴 Live prüfen</button>
+  </div>
+  <div class="foot" id="foot">Daten kommen direkt von deinem Jarvis – nichts davon liegt auf dieser Webseite.</div>
+</div>
+<script>
+const tg = window.Telegram && Telegram.WebApp; if (tg){ tg.ready(); tg.expand(); try { tg.setHeaderColor("#0B0B0F"); tg.setBackgroundColor("#0B0B0F"); } catch (e) {} }
+const $ = id => document.getElementById(id);
+const esc = t => String(t ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = n => n == null ? "–" : n >= 1e6 ? (n/1e6).toFixed(1).replace(".", ",") + " Mio" : n >= 1e4 ? (n/1e3).toFixed(1).replace(".", ",") + "K" : Number(n).toLocaleString("de-DE");
+function decode(){ try { const h = location.hash.replace(/^#/, ""); const p = new URLSearchParams(h).get("d"); if (!p) return null;
+  const b = atob(p.replace(/-/g, "+").replace(/_/g, "/")); const bytes = Uint8Array.from(b, c => c.charCodeAt(0)); return JSON.parse(new TextDecoder().decode(bytes)); } catch (e) { return null; } }
+const D = decode() || {hello: "Hallo, Boss.", sub: "Öffne die App über den Knopf im Jarvis-Chat, dann sind deine Daten da.", demo: true};
+
+function countUp(el, to){ if (to == null){ el.textContent = "–"; return; } const t0 = performance.now(), dur = 1400;
+  (function step(t){ const p = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - p, 3); el.textContent = fmt(Math.round(to * e)); if (p < 1) requestAnimationFrame(step); })(t0); }
+function ring(score){ const s = Math.max(0, Math.min(10, score || 0)), col = s >= 8 ? "#7DFFB0" : s >= 6 ? "#FFE600" : "#FF8FA3", c = 2 * Math.PI * 14;
+  return `<svg class="ring-s" viewBox="0 0 34 34"><circle cx="17" cy="17" r="14" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="3"/>
+    <circle cx="17" cy="17" r="14" fill="none" stroke="${col}" stroke-width="3" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c}" transform="rotate(-90 17 17)">
+    <animate attributeName="stroke-dashoffset" to="${c * (1 - s / 10)}" dur="1.2s" fill="freeze" begin="0.4s"/></circle>
+    <text x="17" y="21" text-anchor="middle" fill="#fff" font-size="11" font-weight="800">${s.toFixed(0)}</text></svg>`; }
+
+$("hello").textContent = D.hello || "Hallo, Boss."; $("sub").textContent = D.sub || "";
+const k = D.kanal || {}; $("handle").textContent = k.handle ? "@" + k.handle : "nicht verbunden";
+document.querySelectorAll("[data-n]").forEach(el => countUp(el, k[el.dataset.n]));
+$("f_day").textContent = k.f_day != null ? `+${fmt(Math.max(0, k.f_day))} heute` : ""; $("l_day").textContent = k.l_day != null ? `+${fmt(Math.max(0, k.l_day))} heute` : "";
+const nowHM = new Date().toTimeString().slice(0, 5);
+const plan = D.plan || []; $("plan_n").textContent = plan.length ? plan.length + " Posts" : "";
+let nextMarked = false;
+$("plan").innerHTML = plan.length ? plan.map(p => { const done = p.t < nowHM, now = !done && !nextMarked; if (now) nextMarked = true;
+  return `<div class="ev ${done ? "done" : ""} ${now ? "now" : ""}"><b><span>${esc(p.t)}</span>${esc(p.title)}</b>
+    <small>${p.caption ? "💬 " + esc(p.caption) + "<br>" : ""}${esc((p.tags || []).join(" "))}${p.sound ? "<br>🎵 " + esc(p.sound) : ""}</small></div>`; }).join("")
+  : `<div class="empty">Für heute ist nichts geplant – tipp unten auf „Woche planen“.</div>`;
+const ag = D.agenda || [];
+$("agenda").innerHTML = ag.length ? ag.map(a => `<div class="ev ${a.t && a.t < nowHM ? "done" : ""}"><b>${a.t ? `<span>${esc(a.t)}</span>` : ""}${esc(a.x)}</b></div>`).join("")
+  : `<div class="empty">Keine Termine oder Aufgaben für heute.</div>`;
+const lives = D.live || []; if (lives.length){ $("c_live").style.display = "";
+  $("lives").innerHTML = lives.map(l => `<div class="live"><span class="d"></span><b>${esc(l.name)}</b><small>${l.rec ? "✂️ wird mitgeschnitten" : esc(l.p)}</small></div>`).join(""); }
+const clips = D.clips || [];
+$("clips").innerHTML = clips.length ? clips.map((c, i) => `<div class="li">${c.s != null ? ring(c.s) : `<span class="n">${i + 1}</span>`}<div>${esc(c.title)}<br><small>${esc(c.who || "")} · ${esc(c.when || "")}</small></div></div>`).join("")
+  : `<div class="empty">Noch keine fertigen Clips.</div>`;
+const rad = D.radar || [];
+$("radar").innerHTML = rad.length ? rad.map(r => `<div class="li"><span class="n">@</span><div>@${esc(r.h)}<br><small>${fmt(r.f)} Follower · +${fmt(Math.max(0, r.w || 0))} / Woche${r.top ? " · Top: " + esc(r.top) : ""}</small></div></div>`).join("")
+  : `<div class="empty">Noch kein Kanal im Radar – im Chat: „Beobachte @kanal“.</div>`;
+if (D.ts) $("foot").textContent = "Stand " + D.ts + " · Daten kommen direkt von deinem Jarvis – nichts davon liegt auf dieser Webseite.";
+// Karten nacheinander einfliegen
+document.querySelectorAll(".card").forEach((c, i) => setTimeout(() => c.classList.add("in"), 250 + i * 140));
+// Knöpfe: Befehl an den Bot
+document.querySelectorAll("[data-cmd]").forEach(b => b.onclick = () => {
+  try { tg && tg.HapticFeedback && tg.HapticFeedback.impactOccurred("medium"); } catch (e) {}
+  const bot = D.bot; if (tg && bot){ tg.openTelegramLink(`https://t.me/${bot}?start=${b.dataset.cmd}`); setTimeout(() => tg.close(), 300); } });
+// Hintergrund: Sterne + Lichtpunkte
+const cv = $("bg"), cx = cv.getContext("2d"); let W, H, P = [];
+function size(){ W = cv.width = innerWidth * devicePixelRatio; H = cv.height = innerHeight * devicePixelRatio; } size(); addEventListener("resize", size);
+for (let i = 0; i < 90; i++) P.push({x: Math.random(), y: Math.random(), s: Math.random() * 1.8 + .4, v: Math.random() * .0007 + .0002, h: Math.random() < .2});
+(function loop(t){ cx.clearRect(0, 0, W, H);
+  const g = cx.createRadialGradient(W * .2, H * .05, 0, W * .2, H * .05, W * 1.1); g.addColorStop(0, "rgba(255,230,0,.13)"); g.addColorStop(1, "rgba(0,0,0,0)"); cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+  const g2 = cx.createRadialGradient(W * .9, H * .9, 0, W * .9, H * .9, W); g2.addColorStop(0, "rgba(255,45,85,.14)"); g2.addColorStop(1, "rgba(0,0,0,0)"); cx.fillStyle = g2; cx.fillRect(0, 0, W, H);
+  P.forEach(p => { p.y -= p.v; if (p.y < 0) p.y = 1; cx.fillStyle = p.h ? "rgba(255,230,0,.8)" : "rgba(220,210,230,.45)"; cx.beginPath(); cx.arc(p.x * W, p.y * H, p.s * devicePixelRatio, 0, 6.3); cx.fill(); });
+  requestAnimationFrame(loop); })();
+</script>
+</body>
+</html>
