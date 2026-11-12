@@ -148,6 +148,12 @@ body:not(.pz) .ring.r3{border-top-color:#5CE1FF;filter:drop-shadow(0 0 10px #5CE
 .note{padding:10px 12px;margin-top:8px;border-radius:14px;background:rgba(255,255,255,.05);font-size:14px;animation:pop .45s both}
 @keyframes conf{to{transform:translate(var(--dx),110vh) rotate(720deg);opacity:0}}
 .cf{position:fixed;top:-10px;width:9px;height:14px;border-radius:2px;z-index:9;pointer-events:none;animation:conf 1.8s ease-in forwards}
+/* Prognose */
+.pg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.pg div{padding:12px 8px;border-radius:16px;background:rgba(255,255,255,.05);text-align:center;animation:pop .5s both}
+.pg small{display:block;color:var(--m);font-size:10px;font-weight:800;letter-spacing:.08em}
+.pg b{display:block;font-size:19px;font-weight:900;margin:4px 0;color:var(--y)}
+.pg i{display:block;font-style:normal;font-size:11px;color:var(--g)}
 /* Einkaufsliste */
 .tabs{display:flex;gap:8px;margin-top:12px;overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
 .tab{flex:none;padding:8px 14px;border-radius:999px;font-weight:800;font-size:13px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;transition:all .25s}
@@ -185,6 +191,9 @@ body:not(.pz) .ring.r3{border-top-color:#5CE1FF;filter:drop-shadow(0 0 10px #5CE
       <div class="stat"><b data-n="videos">–</b><small>VIDEOS</small><i></i></div>
     </div></div>
 
+  <div class="card" data-tab="pz" id="c_prog_pz"><h3>Prognose · 30 Tage <em id="pg_basis_pz"></em></h3>
+    <div class="pg" id="pg_pz"></div><div class="goal" id="pg_goal_pz"></div><div class="bar2"><i id="pg_bar_pz"></i></div></div>
+
   <div class="card" data-tab="pz" id="c_live" style="display:none"><h3>Gerade live</h3><div id="lives"></div></div>
 
   <div class="card" data-tab="pz" id="c_fc" style="display:none"><h3>Follower-Verlauf <em id="fc_delta"></em></h3>
@@ -218,6 +227,9 @@ body:not(.pz) .ring.r3{border-top-color:#5CE1FF;filter:drop-shadow(0 0 10px #5CE
   <div class="card" data-tab="pz" id="c_clips"><h3>Letzte Clips <em>antippen = aufs Handy</em></h3><div id="clips"></div></div>
 
   <div class="card" data-tab="pz" id="c_radar"><h3>Konkurrenz-Radar</h3><div id="radar"></div></div>
+
+  <div class="card" data-tab="dz" id="c_prog_dz"><h3>Prognose · 30 Tage <em id="pg_basis_dz"></em></h3>
+    <div class="pg" id="pg_dz"></div><div class="goal" id="pg_goal_dz"></div><div class="bar2"><i id="pg_bar_dz"></i></div></div>
 
   <div class="card" data-tab="dz" id="c_dzp"><h3>Produkt des Tages <em id="dz_k"></em></h3><div id="dzp"></div></div>
   <div class="card" data-tab="dz" id="c_dzs"><h3>Drehbuch · gesichtslos</h3><div id="dzs"></div></div>
@@ -451,6 +463,14 @@ if (CS) CS.getItem("pz_done", (e, v) => { if (!e && v){ try { done = JSON.parse(
   const L = Z.last || {};
   $("dzl").innerHTML = (L.views != null ? `<div class="kv"><span>👁 ${fmt(L.views)}</span><span>⏱ Ø ${L.schnitt_watch_s ?? "–"}/${L.dauer_s ?? "–"} s</span><span>✅ ${L.ganz_angesehen_pct ?? "–"} % bis Ende</span></div>` : "")
     + ((Z.learn || []).map(x => `<div class="note">💡 ${esc(x)}</div>`).join("") || `<div class="empty">Schick mir Screenshots deiner TikTok-Videoanalyse – ich lerne daraus, was bei dir funktioniert.</div>`); })();
+// Prognose (aus echtem Verlauf der letzten 7 Tage)
+["pz", "dz"].forEach(k => { const P = (D.prog || {})[k] || {}; const box = $("pg_" + k); if (!box) return;
+  const items = [["FOLLOWER", P.follower], ["LIKES", P.likes], ["AUFRUFE", P.aufrufe]];
+  if (!items.some(x => x[1])){ box.innerHTML = ""; $("pg_goal_" + k).innerHTML = "Noch zu wenig Verlauf – nach ein paar Tagen Zahlensammeln zeige ich dir hier ehrlich, wohin es geht."; return; }
+  box.innerHTML = items.map(([n, v], i) => `<div style="animation-delay:${i * 90}ms"><small>${n}</small>${v ? `<b>+${fmt(Math.max(0, Math.round(v.pro_tag * 30)))}</b><i>in 30 Tagen · ${v.pro_tag >= 0 ? "+" : ""}${fmt(Math.round(v.pro_tag))}/Tag</i>` : `<b>–</b><i>noch keine Daten</i>`}</div>`).join("");
+  const b = (P.follower || P.likes || P.aufrufe || {}).basis_tage; $("pg_basis_" + k).textContent = b ? `Basis ${b} Tage` : "";
+  const z = P.ziel || []; if (z[0] && P.follower){ $("pg_goal_" + k).innerHTML = z[1] ? `🎯 <b>${fmt(z[0])} Follower</b> in ca. <b>${z[1]} Tagen</b>` + (P.posts_pro_tag ? ` · bei ${P.posts_pro_tag} Posts/Tag` : "") : `🎯 Nächstes Ziel: ${fmt(z[0])} Follower – dafür muss das Wachstum anziehen`;
+    setTimeout(() => $("pg_bar_" + k).style.width = Math.min(100, P.follower.jetzt / z[0] * 100) + "%", 500); } });
 if (D.ruhe){ $("ruhe").style.display = ""; $("ruhe").textContent = "🌙 Ruhezeit " + D.ruhe + " · Dringendes kommt trotzdem"; }
 // Hintergrund: Sterne + Lichtpunkte
 const cv = $("bg"), cx = cv.getContext("2d"); let W, H, P = [];
