@@ -101,6 +101,21 @@ canvas#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
 .mini.stop{background:rgba(255,255,255,.12);color:#fff}
 .pill{display:inline-block;margin-top:8px;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;background:rgba(92,225,255,.12);color:var(--c);border:1px solid rgba(92,225,255,.3)}
 .btns{grid-template-columns:1fr 1fr}
+/* Posting-Plan: kopieren + gepostet */
+.acts{display:flex;gap:8px;margin-top:8px}
+.acts button{padding:6px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;font:inherit;font-size:12px;font-weight:800}
+.acts button:active{transform:scale(.94)}
+.acts .ok{background:rgba(125,255,176,.15);border-color:rgba(125,255,176,.5);color:var(--g)}
+.ev.posted b{text-decoration:line-through;opacity:.6}
+/* Follower-Kurve */
+.chart{position:relative;margin-top:12px;height:150px}
+.chart svg{width:100%;height:100%;overflow:visible}
+.chart .ln{fill:none;stroke:url(#gl);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1200;stroke-dashoffset:1200;animation:draw 1.6s .3s ease-out forwards}
+.chart .ar{fill:url(#ga);opacity:0;animation:fade .8s 1.2s forwards}
+.chart .dot{fill:var(--y);filter:drop-shadow(0 0 6px var(--y));opacity:0;animation:fade .4s 1.8s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}@keyframes fade{to{opacity:1}}
+.ax{display:flex;justify-content:space-between;color:var(--m);font-size:11px;margin-top:4px}
+.goal{margin-top:12px;font-size:13px;color:var(--m)}.goal b{color:#fff}
 /* Einkaufsliste */
 .tabs{display:flex;gap:8px;margin-top:12px;overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
 .tab{flex:none;padding:8px 14px;border-radius:999px;font-weight:800;font-size:13px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;transition:all .25s}
@@ -138,6 +153,10 @@ canvas#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
     </div></div>
 
   <div class="card" id="c_live" style="display:none"><h3>Gerade live</h3><div id="lives"></div></div>
+
+  <div class="card" id="c_fc" style="display:none"><h3>Follower-Verlauf <em id="fc_delta"></em></h3>
+    <div class="chart" id="fc"></div><div class="ax" id="fc_ax"></div>
+    <div class="goal" id="fc_goal"></div><div class="bar2"><i id="fc_bar"></i></div></div>
 
   <div class="card" id="c_plan"><h3>Heute posten <em id="plan_n"></em></h3><div class="tl" id="plan"></div></div>
 
@@ -194,10 +213,25 @@ $("f_day").textContent = k.f_day != null ? `+${fmt(Math.max(0, k.f_day))} heute`
 const nowHM = new Date().toTimeString().slice(0, 5);
 const plan = D.plan || []; $("plan_n").textContent = plan.length ? plan.length + " Posts" : "";
 let nextMarked = false;
-$("plan").innerHTML = plan.length ? plan.map(p => { const done = p.t < nowHM, now = !done && !nextMarked; if (now) nextMarked = true;
-  return `<div class="ev ${done ? "done" : ""} ${now ? "now" : ""}"><b><span>${esc(p.t)}</span>${esc(p.title)}</b>
-    <small>${p.caption ? "💬 " + esc(p.caption) + "<br>" : ""}${esc((p.tags || []).join(" "))}${p.sound ? "<br>🎵 " + esc(p.sound) : ""}</small></div>`; }).join("")
-  : `<div class="empty">Für heute ist nichts geplant – tipp unten auf „Woche planen“.</div>`;
+const dayKey = "pz_posted_" + new Date().toISOString().slice(0, 10); let posted = {};
+try { posted = JSON.parse(localStorage.getItem(dayKey) || "{}"); } catch (e) {}
+function renderPlan(){
+  $("plan").innerHTML = plan.length ? plan.map((p, i) => { const done = p.t < nowHM, now = !done && !nextMarked && !posted[i]; if (now) nextMarked = true;
+    return `<div class="ev ${done ? "done" : ""} ${now ? "now" : ""} ${posted[i] ? "posted" : ""}"><b><span>${esc(p.t)}</span>${esc(p.title)}</b>
+      <small>${p.caption ? "💬 " + esc(p.caption) + "<br>" : ""}${esc((p.tags || []).join(" "))}${p.sound ? "<br>🎵 " + esc(p.sound) : ""}</small>
+      <div class="acts"><button data-copy="${i}">📋 Text kopieren</button><button data-post="${i}" class="${posted[i] ? "ok" : ""}">${posted[i] ? "✓ Gepostet" : "Gepostet?"}</button></div></div>`; }).join("")
+    : `<div class="empty">Für heute ist nichts geplant – tipp unten auf „Woche planen“.</div>`;
+  $("plan").querySelectorAll("[data-copy]").forEach(b => b.onclick = () => { const p = plan[+b.dataset.copy];
+    const t = [p.caption, (p.tags || []).join(" ")].filter(Boolean).join("\n\n");
+    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => { haptic("ok"); toast("📋 Caption + Hashtags kopiert"); },
+      () => { toast("Kopieren nicht erlaubt – lang drücken zum Markieren"); }); });
+  $("plan").querySelectorAll("[data-post]").forEach(b => b.onclick = () => { const i = +b.dataset.post; posted[i] = !posted[i]; if (!posted[i]) delete posted[i];
+    haptic(posted[i] ? "ok" : "light"); try { localStorage.setItem(dayKey, JSON.stringify(posted)); } catch (e) {}
+    if (CSP) CSP.setItem(dayKey, JSON.stringify(posted)); nextMarked = false; renderPlan(); });
+}
+const CSP = tg && tg.CloudStorage && tg.isVersionAtLeast && tg.isVersionAtLeast("6.9") ? tg.CloudStorage : null;
+renderPlan();
+if (CSP) CSP.getItem(dayKey, (e, v) => { if (!e && v){ try { posted = JSON.parse(v) || {}; nextMarked = false; renderPlan(); } catch (x) {} } });
 const ag = D.agenda || [];
 $("agenda").innerHTML = ag.length ? ag.map(a => `<div class="ev ${a.t && a.t < nowHM ? "done" : ""}"><b>${a.t ? `<span>${esc(a.t)}</span>` : ""}${esc(a.x)}</b></div>`).join("")
   : `<div class="empty">Keine Termine oder Aufgaben für heute.</div>`;
@@ -271,6 +305,26 @@ $("shop_done").onclick = () => { const st = SH.stores[shopTab]; const ids = st.i
 try { done = JSON.parse(localStorage.getItem("pz_done") || "{}"); } catch (e) {}
 renderShop();
 if (CS) CS.getItem("pz_done", (e, v) => { if (!e && v){ try { done = JSON.parse(v) || {}; renderShop(); } catch (x) {} } });
+// Follower-Kurve mit Ziel-Prognose
+(function(){ const fc = D.fc || []; if (fc.length < 2) return; $("c_fc").style.display = "";
+  const W = 320, H = 140, v = fc.map(p => p[1]), lo = Math.min(...v), hi = Math.max(...v), sp = Math.max(1, hi - lo);
+  const pts = v.map((y, i) => [i / (v.length - 1) * W, H - 10 - (y - lo) / sp * (H - 30)]);
+  const d = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+  const last = pts[pts.length - 1];
+  $("fc").innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><defs>
+    <linearGradient id="gl" x1="0" x2="1"><stop offset="0" stop-color="#5ce1ff"/><stop offset="1" stop-color="#ffe600"/></linearGradient>
+    <linearGradient id="ga" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="rgba(255,230,0,.28)"/><stop offset="1" stop-color="rgba(255,230,0,0)"/></linearGradient></defs>
+    <path class="ar" d="${d} L ${W} ${H} L 0 ${H} Z"/><path class="ln" d="${d}"/><circle class="dot" cx="${last[0]}" cy="${last[1]}" r="5"/></svg>`;
+  $("fc_ax").innerHTML = `<span>${esc(fc[0][0])}</span><span>${esc(fc[fc.length - 1][0])}</span>`;
+  const gain = v[v.length - 1] - v[0]; $("fc_delta").textContent = (gain >= 0 ? "+" : "") + fmt(gain) + " seit " + fc[0][0];
+  const dt = s => { const [dd, mm] = s.split(".").map(Number), y = new Date().getFullYear(); let t = new Date(y, mm - 1, dd); if (t > new Date()) t = new Date(y - 1, mm - 1, dd); return t; };
+  const span = Math.max(1, Math.round((dt(fc[fc.length - 1][0]) - dt(fc[0][0])) / 864e5));
+  const now = v[v.length - 1], goals = [500, 1000, 2000, 5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000];
+  const goal = goals.find(g => g > now) || now * 2, prev = [...goals].reverse().find(g => g <= now) || 0;
+  const perDay = gain / span, left = goal - now;
+  $("fc_goal").innerHTML = `Noch <b>${fmt(left)}</b> bis <b>${fmt(goal)}</b>` + (perDay > 0 ? ` · bei diesem Tempo in ca. <b>${Math.ceil(left / perDay)} Tagen</b>` : "");
+  setTimeout(() => $("fc_bar").style.width = Math.min(100, (now - prev) / Math.max(1, goal - prev) * 100) + "%", 400);
+})();
 if (D.ruhe){ $("ruhe").style.display = ""; $("ruhe").textContent = "🌙 Ruhezeit " + D.ruhe + " · Dringendes kommt trotzdem"; }
 // Hintergrund: Sterne + Lichtpunkte
 const cv = $("bg"), cx = cv.getContext("2d"); let W, H, P = [];
