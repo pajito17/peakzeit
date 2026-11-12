@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
-<title>peakZeit · Jarvis</title>
+<title>J.A.R.V.I.S.</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-:root{--bg:#0B0B0F;--y:#FFE600;--r:#FF2D55;--c:#5CE1FF;--g:#7DFFB0;--t:#fff;--m:#a39cab;--glass:rgba(26,22,34,.62)}
+:root{--bg:#0B0B0F;--y:#5CE1FF;--r:#FF2D55;--c:#5CE1FF;--g:#7DFFB0;--t:#fff;--m:#a39cab;--glass:rgba(26,22,34,.62)}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{background:var(--bg);color:var(--t);font-family:-apple-system,"SF Pro Display","Segoe UI",Inter,sans-serif;overflow-x:hidden}
 canvas#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
@@ -84,7 +84,7 @@ canvas#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
 .chip{flex:none;padding:8px 12px;border-radius:999px;font-size:13px;font-weight:700;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#fff}
 .chip:active{transform:scale(.94);background:rgba(255,230,0,.2)}
 .bar{display:flex;gap:8px;align-items:center;padding:6px 6px 6px 16px;border-radius:999px;background:rgba(30,26,40,.85);
-  border:1px solid rgba(255,230,0,.35);box-shadow:0 0 0 0 rgba(255,230,0,.4);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);transition:box-shadow .3s}
+  border:1px solid color-mix(in srgb,var(--y) 35%,transparent);box-shadow:0 0 0 0 rgba(255,230,0,.4);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);transition:box-shadow .3s}
 .bar:focus-within{box-shadow:0 0 0 4px rgba(255,230,0,.18),0 10px 40px rgba(255,230,0,.2)}
 .bar input{flex:1;min-width:0;background:none;border:none;outline:none;color:#fff;font:inherit;font-size:16px}
 .bar input::placeholder{color:var(--m)}
@@ -121,6 +121,26 @@ canvas#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
 .wk div{padding:12px;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);text-align:center;animation:pop .5s both}
 .wk b{display:block;font-size:22px;font-weight:900}.wk small{color:var(--m);font-size:11px;font-weight:700;letter-spacing:.08em}
 .tip{margin-top:8px;padding:10px 12px;border-radius:14px;background:rgba(92,225,255,.08);border-left:3px solid var(--c);font-size:14px;animation:pop .5s both}
+/* Bereiche: Jarvis | peakZeit */
+body.pz{--y:#FFE600}
+.seg{display:flex;gap:6px;margin:6px auto 0;padding:5px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);width:max-content;position:relative}
+.seg button{position:relative;z-index:1;border:none;background:none;color:var(--m);font:inherit;font-weight:800;font-size:14px;padding:9px 18px;border-radius:999px;transition:color .3s}
+.seg button.on{color:#111}
+.seg i{position:absolute;top:5px;bottom:5px;left:5px;border-radius:999px;background:var(--y);box-shadow:0 6px 24px color-mix(in srgb,var(--y) 45%,transparent);transition:all .45s cubic-bezier(.2,1.2,.3,1)}
+[data-tab]{display:none}[data-tab].show{display:block}
+.btns[data-tab].show{display:grid}
+.word{transition:color .4s}.word b{transition:color .4s}
+.ring.r3{transition:border-color .5s}
+body:not(.pz) .ring.r3{border-top-color:#5CE1FF;filter:drop-shadow(0 0 10px #5CE1FF)}
+.chore{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid rgba(255,255,255,.06);animation:pop .45s both}
+.chore .nm{flex:1;font-size:15px}.chore .pt{color:var(--y);font-weight:900;font-size:13px}
+.duel{display:flex;gap:10px;margin-top:12px}
+.duel div{flex:1;padding:12px;border-radius:16px;background:rgba(255,255,255,.05);text-align:center;border:1px solid rgba(255,255,255,.08)}
+.duel div.lead{border-color:var(--y);box-shadow:0 0 24px color-mix(in srgb,var(--y) 25%,transparent)}
+.duel b{display:block;font-size:26px;font-weight:900}.duel small{color:var(--m);font-weight:700}
+.note{padding:10px 12px;margin-top:8px;border-radius:14px;background:rgba(255,255,255,.05);font-size:14px;animation:pop .45s both}
+@keyframes conf{to{transform:translate(var(--dx),110vh) rotate(720deg);opacity:0}}
+.cf{position:fixed;top:-10px;width:9px;height:14px;border-radius:2px;z-index:9;pointer-events:none;animation:conf 1.8s ease-in forwards}
 /* Einkaufsliste */
 .tabs{display:flex;gap:8px;margin-top:12px;overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
 .tab{flex:none;padding:8px 14px;border-radius:999px;font-weight:800;font-size:13px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;transition:all .25s}
@@ -129,14 +149,14 @@ canvas#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
 .shop{margin-top:10px}
 .it{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid rgba(255,255,255,.06);transition:opacity .35s,transform .35s;animation:pop .45s both}
 @keyframes pop{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
-.it .cb{width:24px;height:24px;border-radius:8px;border:2px solid rgba(255,230,0,.6);flex:none;display:flex;align-items:center;justify-content:center;transition:all .25s}
+.it .cb{width:24px;height:24px;border-radius:8px;border:2px solid color-mix(in srgb,var(--y) 60%,transparent);flex:none;display:flex;align-items:center;justify-content:center;transition:all .25s}
 .it.done .cb{background:var(--g);border-color:var(--g);transform:scale(1.1)}
 .it.done .cb:after{content:"✓";color:#111;font-weight:900;font-size:14px}
 .it .nm{flex:1;font-size:15px;transition:color .3s}
 .it.done .nm{color:var(--m);text-decoration:line-through}
 .it .q{color:var(--y);font-weight:800;margin-right:6px}
 .it .pr{font-weight:800;font-size:14px;font-variant-numeric:tabular-nums}.it .pr i{font-style:normal;color:var(--m);font-weight:600;font-size:11px;margin-right:3px}
-.sum{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding:12px 14px;border-radius:16px;background:rgba(255,230,0,.08);border:1px solid rgba(255,230,0,.25)}
+.sum{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding:12px 14px;border-radius:16px;background:color-mix(in srgb,var(--y) 8%,transparent);border:1px solid color-mix(in srgb,var(--y) 25%,transparent)}
 .sum small{color:var(--m);font-size:12px;display:block}.sum b{font-size:22px;font-weight:900;color:var(--y);font-variant-numeric:tabular-nums}
 .bar2{height:6px;border-radius:6px;background:rgba(255,255,255,.08);margin-top:10px;overflow:hidden}.bar2 i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--g),var(--y));transition:width .5s}
 </style>
@@ -144,43 +164,55 @@ canvas#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
 <body>
 <canvas id="bg"></canvas>
 <div class="wrap">
-  <div class="word">peak<b>Z</b>eit · JARVIS</div>
+  <div class="word" id="word">J.A.R.V.I.S.</div>
+  <div class="seg" id="seg"><i id="segi"></i><button data-go="jv" class="on">🏠 Jarvis</button><button data-go="pz">⚡ peakZeit</button></div>
   <div class="hero" style="height:320px">
     <div class="core"><div class="ring r4"></div><div class="ring r1"></div><div class="ring r2"><div class="sat"></div></div><div class="ring r3"></div><div class="hex">J</div></div>
     <div class="hello"><h1 id="hello">Hallo, Boss.</h1><p id="sub"></p><span class="pill" id="ruhe" style="display:none"></span></div>
   </div>
 
-  <div class="card" id="c_stats"><h3>Kanal <em id="handle"></em></h3>
+  <div class="card" data-tab="pz" id="c_stats"><h3>Kanal <em id="handle"></em></h3>
     <div class="stats">
       <div class="stat main"><b data-n="followers">–</b><small>FOLLOWER</small><i id="f_day"></i></div>
       <div class="stat"><b data-n="likes">–</b><small>LIKES</small><i id="l_day"></i></div>
       <div class="stat"><b data-n="videos">–</b><small>VIDEOS</small><i></i></div>
     </div></div>
 
-  <div class="card" id="c_live" style="display:none"><h3>Gerade live</h3><div id="lives"></div></div>
+  <div class="card" data-tab="pz" id="c_live" style="display:none"><h3>Gerade live</h3><div id="lives"></div></div>
 
-  <div class="card" id="c_fc" style="display:none"><h3>Follower-Verlauf <em id="fc_delta"></em></h3>
+  <div class="card" data-tab="pz" id="c_fc" style="display:none"><h3>Follower-Verlauf <em id="fc_delta"></em></h3>
     <div class="chart" id="fc"></div><div class="ax" id="fc_ax"></div>
     <div class="goal" id="fc_goal"></div><div class="bar2"><i id="fc_bar"></i></div></div>
 
-  <div class="card" id="c_week" style="display:none"><h3>Deine Woche <em id="wk_r"></em></h3>
+  <div class="card" data-tab="pz" id="c_week" style="display:none"><h3>Deine Woche <em id="wk_r"></em></h3>
     <div class="wk" id="wk"></div><div id="wk_best"></div><div id="wk_tips"></div></div>
 
-  <div class="card" id="c_plan"><h3>Heute posten <em id="plan_n"></em></h3><div class="tl" id="plan"></div></div>
+  <div class="card" data-tab="pz" id="c_plan"><h3>Heute posten <em id="plan_n"></em></h3><div class="tl" id="plan"></div></div>
 
-  <div class="card" id="c_shop"><h3>Einkaufsliste <em id="shop_tot"></em></h3>
+  <div class="card" data-tab="jv" id="c_agenda"><h3>Heute <em id="ag_n"></em></h3><div class="tl" id="agenda"></div></div>
+
+  <div class="card" data-tab="jv" id="c_shop"><h3>Einkaufsliste <em id="shop_tot"></em></h3>
     <div class="tabs" id="tabs"></div><div class="shop" id="shop"></div>
     <div class="bar2"><i id="shop_prog"></i></div>
     <div class="sum"><div><small id="shop_lbl">Noch zu kaufen</small><b id="shop_sum">0,00 €</b></div><button class="mini" id="shop_done" style="display:none">✓ Einkauf fertig</button></div>
   </div>
 
-  <div class="card" id="c_agenda"><h3>Termine &amp; Aufgaben</h3><div class="tl" id="agenda"></div></div>
+  <div class="card" data-tab="jv" id="c_house" style="display:none"><h3>Haushalt <em>Duell der Woche</em></h3>
+    <div class="duel" id="duel"></div><div id="chores"></div><div id="h_last" class="goal"></div></div>
 
-  <div class="card" id="c_clips"><h3>Letzte Clips <em>antippen = aufs Handy</em></h3><div id="clips"></div></div>
+  <div class="card" data-tab="jv" id="c_notes" style="display:none"><h3>Notizen</h3><div id="notes"></div></div>
 
-  <div class="card" id="c_radar"><h3>Konkurrenz-Radar</h3><div id="radar"></div></div>
+  <div class="card" data-tab="pz" id="c_clips"><h3>Letzte Clips <em>antippen = aufs Handy</em></h3><div id="clips"></div></div>
 
-  <div class="btns">
+  <div class="card" data-tab="pz" id="c_radar"><h3>Konkurrenz-Radar</h3><div id="radar"></div></div>
+
+  <div class="btns" data-tab="jv">
+    <button class="btn" data-cmd="morgen">☀️ Mein Tag</button>
+    <button class="btn" data-cmd="haushalt">🏠 Haushalt</button>
+    <button class="btn alt" data-cmd="einkauf">🛒 Liste als Karte</button>
+    <button class="btn alt" data-cmd="briefing">🧠 Briefing</button>
+  </div>
+  <div class="btns" data-tab="pz">
     <button class="btn" data-cmd="clips">🎬 Clips schicken</button>
     <button class="btn" data-cmd="plan">🗓 Woche planen</button>
     <button class="btn alt" data-cmd="heute_senden">📲 Heutige Videos</button>
@@ -188,7 +220,7 @@ canvas#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
     <button class="btn alt" data-cmd="recycling">♻️ Recycling</button>
     <button class="btn alt" data-cmd="sound">🎵 Trend-Sounds</button>
     <button class="btn alt" data-cmd="radar">📡 Radar</button>
-    <button class="btn alt" data-cmd="morgen">☀️ Morgen-Karte</button>
+    <button class="btn alt" data-cmd="kampagnen">💰 Kampagnen</button>
   </div>
   <div class="foot" id="foot">Daten kommen direkt von deinem Jarvis – nichts davon liegt auf dieser Webseite.</div>
 </div>
@@ -270,13 +302,49 @@ function send(text){
   setTimeout(() => { tg.openTelegramLink(`https://t.me/${bot}` + (start ? `?start=${start}` : "")); setTimeout(() => tg.close(), 300); }, 300);
 }
 document.querySelectorAll("[data-cmd]").forEach(b => b.onclick = () => send("/" + b.dataset.cmd));
-const CHIPS = ["Wie weit bist du?", "Was poste ich heute?", "🛒 Auf die Liste …", "Neue Follower?", "Wer ist live?",
-  ...(rad[0] ? [`Clips vom neuesten Video von ${rad[0].h}`.slice(0, 46)] : []), "Plane meine Woche", "Stopp"];
-$("chips").innerHTML = CHIPS.map(c => `<button class="chip">${esc(c)}</button>`).join("");
-$("chips").querySelectorAll(".chip").forEach(b => b.onclick = () => {
-  if (b.textContent.startsWith("🛒")){ const st = (SH.stores[shopTab] || {}).n || "Lidl"; const q = $("q"); q.value = ` auf die ${st}-Liste`; q.focus();
-    try { q.setSelectionRange(0, 0); } catch (e) {} haptic("light"); return; }
-  send(b.textContent); });
+// Bereiche: 🏠 Jarvis (Alltag) | ⚡ peakZeit (nur Pio) – Familie sieht nur Jarvis
+const FAM = D.role === "familie";
+const CH = {jv: ["Was steht heute an?", "🛒 Auf die Liste …", "Hab ich was vergessen?", "Was koche ich heute?", FAM ? "Sag Pio, …" : "Sag Aurora, …"],
+            pz: ["Wie weit bist du?", "Was poste ich heute?", "Neue Follower?", "Wer ist live?",
+                 ...(rad[0] ? [`Clips vom neuesten Video von ${rad[0].h}`.slice(0, 46)] : []), "Plane meine Woche", "Stopp"]};
+let TAB = "jv";
+try { if (!FAM && localStorage.getItem("pz_tab") === "pz") TAB = "pz"; } catch (e) {}
+function setTab(t, anim){
+  TAB = t; document.body.classList.toggle("pz", t === "pz");
+  document.querySelectorAll("[data-tab]").forEach(el => el.classList.toggle("show", el.dataset.tab === t));
+  document.querySelectorAll(".seg button").forEach(b => b.classList.toggle("on", b.dataset.go === t));
+  const on = document.querySelector(".seg button.on"); if (on){ $("segi").style.left = on.offsetLeft + "px"; $("segi").style.width = on.offsetWidth + "px"; }
+  $("word").innerHTML = t === "pz" ? "peak<b>Z</b>eit" : "J.A.R.V.I.S.";
+  $("sub").textContent = t === "pz" ? (D.pz_sub || "") : (D.sub || "");
+  renderChips(); try { localStorage.setItem("pz_tab", t); } catch (e) {}
+  if (anim) document.querySelectorAll(`[data-tab="${t}"].card`).forEach((c, i) => { c.classList.remove("in"); setTimeout(() => c.classList.add("in"), 60 + i * 90); });
+}
+if (FAM) $("seg").style.display = "none";
+document.querySelectorAll(".seg button").forEach(b => b.onclick = () => { haptic("light"); setTab(b.dataset.go, true); });
+function confetti(){ const cols = ["#FFE600", "#5CE1FF", "#FF2D55", "#7DFFB0"]; for (let i = 0; i < 40; i++){ const c = document.createElement("i"); c.className = "cf";
+  c.style.left = Math.random() * 100 + "vw"; c.style.background = cols[i % 4]; c.style.setProperty("--dx", (Math.random() * 120 - 60) + "px");
+  c.style.animationDelay = Math.random() * .4 + "s"; document.body.appendChild(c); setTimeout(() => c.remove(), 2600); } }
+// Haushalt + Duell
+(function(){ const H = D.house || {}; if (!H.duel) return; $("c_house").style.display = "";
+  const mx = Math.max(...H.duel.map(x => x[1]), 0);
+  $("duel").innerHTML = H.duel.map(([n, p]) => `<div class="${p === mx && mx > 0 ? "lead" : ""}"><b>${p}</b><small>${p === mx && mx > 0 ? "👑 " : ""}${esc(n)}</small></div>`).join("");
+  $("chores").innerHTML = (H.due || []).length ? H.due.map((c, k) => `<div class="chore" style="animation-delay:${k * 50}ms"><span class="nm">${esc(c.n)}</span><span class="pt">+${c.p}</span><button class="mini" data-ch="${c.i}">✓</button></div>`).join("")
+    : `<div class="empty">Alles erledigt – die Bude glänzt ✨</div>`;
+  $("h_last").innerHTML = (H.last || []).map(l => `✅ <b>${esc(l[0])}</b> · ${esc(l[1])} · ${esc(l[2])}`).join("<br>");
+  $("chores").querySelectorAll("[data-ch]").forEach(b => b.onclick = () => { confetti(); haptic("ok"); b.closest(".chore").style.opacity = .35; setTimeout(() => send("/erledigt " + b.dataset.ch), 900); });
+})();
+(function(){ const N = D.notes || []; if (!N.length) return; $("c_notes").style.display = "";
+  $("notes").innerHTML = N.map((n, k) => `<div class="note" style="animation-delay:${k * 60}ms">📝 ${esc(n)}</div>`).join(""); })();
+if (FAM && D.leave){ const [hh, mm] = D.leave.split(":").map(Number), t = new Date(); t.setHours(hh, mm, 0, 0); const left = Math.round((t - new Date()) / 6e4);
+  if (left > 0 && left < 180){ $("ruhe").style.display = ""; $("ruhe").textContent = `🚗 Noch ${left} Min bis du los musst (${D.leave})`; } }
+function renderChips(){
+  $("chips").innerHTML = CH[TAB].map(c => `<button class="chip">${esc(c)}</button>`).join("");
+  $("chips").querySelectorAll(".chip").forEach(b => b.onclick = () => {
+    const q = $("q");
+    if (b.textContent.startsWith("🛒")){ const st = (SH.stores[shopTab] || {}).n || "Lidl"; q.value = ` auf die ${st}-Liste`; q.focus(); try { q.setSelectionRange(0, 0); } catch (e) {} haptic("light"); return; }
+    if (b.textContent.endsWith("…")){ q.value = b.textContent.replace("…", ""); q.focus(); haptic("light"); return; }
+    send(b.textContent); });
+}
 $("bar").onsubmit = e => { e.preventDefault(); const v = $("q").value; $("q").value = ""; $("q").blur(); send(v); };
 // Clips antippen = aufs Handy schicken, Live = mitschneiden
 document.querySelectorAll("[data-clip]").forEach(el => el.onclick = () => send(("/clip " + el.dataset.clip).slice(0, 46)));
@@ -352,6 +420,7 @@ for (let i = 0; i < 90; i++) P.push({x: Math.random(), y: Math.random(), s: Math
   const g2 = cx.createRadialGradient(W * .9, H * .9, 0, W * .9, H * .9, W); g2.addColorStop(0, "rgba(255,45,85,.14)"); g2.addColorStop(1, "rgba(0,0,0,0)"); cx.fillStyle = g2; cx.fillRect(0, 0, W, H);
   P.forEach(p => { p.y -= p.v; if (p.y < 0) p.y = 1; cx.fillStyle = p.h ? "rgba(255,230,0,.8)" : "rgba(220,210,230,.45)"; cx.beginPath(); cx.arc(p.x * W, p.y * H, p.s * devicePixelRatio, 0, 6.3); cx.fill(); });
   requestAnimationFrame(loop); })();
+setTab(TAB, false);
 </script>
 </body>
 </html>
