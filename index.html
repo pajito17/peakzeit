@@ -123,6 +123,13 @@ canvas#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
 .tip{margin-top:8px;padding:10px 12px;border-radius:14px;background:rgba(92,225,255,.08);border-left:3px solid var(--c);font-size:14px;animation:pop .5s both}
 /* Bereiche: Jarvis | peakZeit */
 body.pz{--y:#FFE600}
+body.dz{--y:#FF4D8D}
+.big{font-size:20px;font-weight:900;margin-top:10px}
+.kv{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.kv span{padding:6px 10px;border-radius:10px;background:rgba(255,255,255,.06);font-size:12px;font-weight:800}
+.step{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:14px;animation:pop .45s both}
+.step b{flex:none;width:24px;height:24px;border-radius:50%;background:var(--y);color:#111;display:flex;align-items:center;justify-content:center;font-size:12px}
+.money b.tot{font-size:30px;font-weight:900;color:var(--y)}
+.mrow{display:flex;justify-content:space-between;margin-top:8px;font-size:14px}.mrow i{font-style:normal;color:var(--m)}
 .seg{display:flex;gap:6px;margin:6px auto 0;padding:5px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);width:max-content;position:relative}
 .seg button{position:relative;z-index:1;border:none;background:none;color:var(--m);font:inherit;font-weight:800;font-size:14px;padding:9px 18px;border-radius:999px;transition:color .3s}
 .seg button.on{color:#111}
@@ -165,7 +172,7 @@ body:not(.pz) .ring.r3{border-top-color:#5CE1FF;filter:drop-shadow(0 0 10px #5CE
 <canvas id="bg"></canvas>
 <div class="wrap">
   <div class="word" id="word">J.A.R.V.I.S.</div>
-  <div class="seg" id="seg"><i id="segi"></i><button data-go="jv" class="on">🏠 Jarvis</button><button data-go="pz">⚡ peakZeit</button></div>
+  <div class="seg" id="seg"><i id="segi"></i><button data-go="jv" class="on">🏠 Jarvis</button><button data-go="pz">⚡ peakZeit</button><button data-go="dz">🛍 DropZone</button></div>
   <div class="hero" style="height:320px">
     <div class="core"><div class="ring r4"></div><div class="ring r1"></div><div class="ring r2"><div class="sat"></div></div><div class="ring r3"></div><div class="hex">J</div></div>
     <div class="hello"><h1 id="hello">Hallo, Boss.</h1><p id="sub"></p><span class="pill" id="ruhe" style="display:none"></span></div>
@@ -189,6 +196,12 @@ body:not(.pz) .ring.r3{border-top-color:#5CE1FF;filter:drop-shadow(0 0 10px #5CE
 
   <div class="card" data-tab="pz" id="c_plan"><h3>Heute posten <em id="plan_n"></em></h3><div class="tl" id="plan"></div></div>
 
+  <div class="card money" data-tab="jv" id="c_money" style="display:none"><h3>Geld · 30 Tage <em id="m_days"></em></h3>
+    <div style="margin-top:10px"><b class="tot" id="m_tot">0 €</b> <span style="color:var(--m)" id="m_goal"></span></div>
+    <div class="bar2"><i id="m_bar"></i></div>
+    <div class="mrow"><span>🛍 DropZone</span><i id="m_dz"></i></div><div class="mrow"><span>⚡ peakZeit</span><i id="m_pz"></i></div>
+    <div id="m_best" style="margin-top:10px"></div></div>
+
   <div class="card" data-tab="jv" id="c_agenda"><h3>Heute <em id="ag_n"></em></h3><div class="tl" id="agenda"></div></div>
 
   <div class="card" data-tab="jv" id="c_shop"><h3>Einkaufsliste <em id="shop_tot"></em></h3>
@@ -206,6 +219,16 @@ body:not(.pz) .ring.r3{border-top-color:#5CE1FF;filter:drop-shadow(0 0 10px #5CE
 
   <div class="card" data-tab="pz" id="c_radar"><h3>Konkurrenz-Radar</h3><div id="radar"></div></div>
 
+  <div class="card" data-tab="dz" id="c_dzp"><h3>Produkt des Tages <em id="dz_k"></em></h3><div id="dzp"></div></div>
+  <div class="card" data-tab="dz" id="c_dzs"><h3>Drehbuch · gesichtslos</h3><div id="dzs"></div></div>
+  <div class="card" data-tab="dz" id="c_dzl"><h3>Was Jarvis gelernt hat</h3><div id="dzl"></div></div>
+
+  <div class="btns" data-tab="dz">
+    <button class="btn" data-cmd="dropzone">🔥 Neues Produkt</button>
+    <button class="btn" data-cmd="potenzial">🎯 Potenzial</button>
+    <button class="btn alt" data-cmd="muster">📩 Muster-Anfrage</button>
+    <button class="btn alt" data-cmd="geld">💰 Geld-Cockpit</button>
+  </div>
   <div class="btns" data-tab="jv">
     <button class="btn" data-cmd="morgen">☀️ Mein Tag</button>
     <button class="btn" data-cmd="haushalt">🏠 Haushalt</button>
@@ -305,17 +328,18 @@ document.querySelectorAll("[data-cmd]").forEach(b => b.onclick = () => send("/" 
 // Bereiche: 🏠 Jarvis (Alltag) | ⚡ peakZeit (nur Pio) – Familie sieht nur Jarvis
 const FAM = D.role === "familie";
 const CH = {jv: ["Was steht heute an?", "🛒 Auf die Liste …", "Hab ich was vergessen?", "Was koche ich heute?", FAM ? "Sag Pio, …" : "Sag Aurora, …"],
+            dz: ["Was poste ich heute bei DropZone?", "Analysier mein letztes Video", "Provision …", "Gib mir 3 Ideen ohne Produkt"],
             pz: ["Wie weit bist du?", "Was poste ich heute?", "Neue Follower?", "Wer ist live?",
                  ...(rad[0] ? [`Clips vom neuesten Video von ${rad[0].h}`.slice(0, 46)] : []), "Plane meine Woche", "Stopp"]};
 let TAB = "jv";
-try { if (!FAM && localStorage.getItem("pz_tab") === "pz") TAB = "pz"; } catch (e) {}
+try { const lt = localStorage.getItem("pz_tab"); if (!FAM && (lt === "pz" || lt === "dz")) TAB = lt; } catch (e) {}
 function setTab(t, anim){
-  TAB = t; document.body.classList.toggle("pz", t === "pz");
+  TAB = t; document.body.classList.toggle("pz", t === "pz"); document.body.classList.toggle("dz", t === "dz");
   document.querySelectorAll("[data-tab]").forEach(el => el.classList.toggle("show", el.dataset.tab === t));
   document.querySelectorAll(".seg button").forEach(b => b.classList.toggle("on", b.dataset.go === t));
   const on = document.querySelector(".seg button.on"); if (on){ $("segi").style.left = on.offsetLeft + "px"; $("segi").style.width = on.offsetWidth + "px"; }
-  $("word").innerHTML = t === "pz" ? "peak<b>Z</b>eit" : "J.A.R.V.I.S.";
-  $("sub").textContent = t === "pz" ? (D.pz_sub || "") : (D.sub || "");
+  $("word").innerHTML = t === "pz" ? "peak<b>Z</b>eit" : t === "dz" ? "Drop<b>Zone</b>" : "J.A.R.V.I.S.";
+  $("sub").textContent = t === "pz" ? (D.pz_sub || "") : t === "dz" ? "Dein Shop · gesichtslos · Provision" : (D.sub || "");
   renderChips(); try { localStorage.setItem("pz_tab", t); } catch (e) {}
   if (anim) document.querySelectorAll(`[data-tab="${t}"].card`).forEach((c, i) => { c.classList.remove("in"); setTimeout(() => c.classList.add("in"), 60 + i * 90); });
 }
@@ -410,6 +434,23 @@ if (CS) CS.getItem("pz_done", (e, v) => { if (!e && v){ try { done = JSON.parse(
     (w.n ? `<div class="goal">Nächste Woche: <b>${w.n} Posts</b> geplant</div>` : "");
   $("wk_best").querySelectorAll("[data-clip]").forEach(el => el.onclick = () => send(("/clip " + el.dataset.clip).slice(0, 46)));
 })();
+// Geld-Cockpit (nur Pio) + DropZone
+(function(){ const M = D.money || {}; if (FAM || M.goal == null) return; $("c_money").style.display = "";
+  $("m_tot").textContent = eur(M.total); $("m_goal").textContent = "von " + eur(M.goal); $("m_days").textContent = `noch ${M.days_left} Tage · ${eur(M.per_day)}/Tag`;
+  $("m_dz").textContent = eur(M.dropzone); $("m_pz").textContent = eur(M.peakzeit) + (M.open ? ` · offen ${eur(M.open)}` : "");
+  $("m_best").innerHTML = (M.best || []).map(b => `<div class="tip">${esc(b)}</div>`).join("");
+  setTimeout(() => $("m_bar").style.width = (M.pct || 0) + "%", 500); })();
+(function(){ const Z = D.dz || {}; const P = Z.prod;
+  $("dzp").innerHTML = P ? `<div class="big">${esc(P.n)}</div><div class="empty">${esc(P.w)}</div>
+    <div class="kv"><span>Preis ca. ${eur(P.vk)}</span><span style="color:var(--g)">Provision: im Shop prüfen</span></div>
+    ${(Z.more || []).length ? `<div class="goal">Weitere: ${Z.more.map(esc).join(" · ")}</div>` : ""}`
+    : `<div class="empty">Noch kein Produkt – tipp unten auf „🔥 Neues Produkt“.</div>`;
+  if (P) $("dz_k").textContent = "Konkurrenz " + P.k;
+  $("dzs").innerHTML = P ? `<div class="tip">🎣 ${esc(P.hook)}</div>` + (P.sz || []).map((x, i) => `<div class="step" style="animation-delay:${i * 70}ms"><b>${i + 1}</b><span>${esc(x)}</span></div>`).join("")
+    + `<div class="goal">Filme die Szenen, schick sie mir im Chat – ich schneide das Video.</div>` : `<div class="empty">Kommt mit dem Produkt des Tages.</div>`;
+  const L = Z.last || {};
+  $("dzl").innerHTML = (L.views != null ? `<div class="kv"><span>👁 ${fmt(L.views)}</span><span>⏱ Ø ${L.schnitt_watch_s ?? "–"}/${L.dauer_s ?? "–"} s</span><span>✅ ${L.ganz_angesehen_pct ?? "–"} % bis Ende</span></div>` : "")
+    + ((Z.learn || []).map(x => `<div class="note">💡 ${esc(x)}</div>`).join("") || `<div class="empty">Schick mir Screenshots deiner TikTok-Videoanalyse – ich lerne daraus, was bei dir funktioniert.</div>`); })();
 if (D.ruhe){ $("ruhe").style.display = ""; $("ruhe").textContent = "🌙 Ruhezeit " + D.ruhe + " · Dringendes kommt trotzdem"; }
 // Hintergrund: Sterne + Lichtpunkte
 const cv = $("bg"), cx = cv.getContext("2d"); let W, H, P = [];
