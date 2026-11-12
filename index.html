@@ -136,6 +136,9 @@ body.dz{--y:#FF4D8D}
 .seg i{position:absolute;top:5px;bottom:5px;left:5px;border-radius:999px;background:var(--y);box-shadow:0 6px 24px color-mix(in srgb,var(--y) 45%,transparent);transition:all .45s cubic-bezier(.2,1.2,.3,1)}
 [data-tab]{display:none}[data-tab].show{display:block}
 .btns[data-tab].show{display:grid}
+details.more[data-tab].show{display:block}
+.more{margin-top:12px}.more summary{list-style:none;text-align:center;color:var(--m);font-weight:800;font-size:13px;padding:10px;cursor:pointer}
+.more summary::-webkit-details-marker{display:none}.more summary:after{content:" ▾"}.more[open] summary:after{content:" ▴"}
 .word{transition:color .4s}.word b{transition:color .4s}
 .ring.r3{transition:border-color .5s}
 body:not(.pz) .ring.r3{border-top-color:#5CE1FF;filter:drop-shadow(0 0 10px #5CE1FF)}
@@ -242,21 +245,26 @@ body:not(.pz) .ring.r3{border-top-color:#5CE1FF;filter:drop-shadow(0 0 10px #5CE
     <button class="btn alt" data-cmd="geld">💰 Geld-Cockpit</button>
   </div>
   <div class="btns" data-tab="jv">
-    <button class="btn" data-cmd="morgen">☀️ Mein Tag</button>
+    <button class="btn" data-cmd="tag">☀️ Mein Tag</button>
     <button class="btn" data-cmd="haushalt">🏠 Haushalt</button>
     <button class="btn alt" data-cmd="einkauf">🛒 Liste als Karte</button>
     <button class="btn alt" data-cmd="briefing">🧠 Briefing</button>
   </div>
   <div class="btns" data-tab="pz">
-    <button class="btn" data-cmd="clips">🎬 Clips schicken</button>
-    <button class="btn" data-cmd="plan">🗓 Woche planen</button>
-    <button class="btn alt" data-cmd="heute_senden">📲 Heutige Videos</button>
-    <button class="btn alt" data-cmd="live">🔴 Live prüfen</button>
-    <button class="btn alt" data-cmd="recycling">♻️ Recycling</button>
-    <button class="btn alt" data-cmd="sound">🎵 Trend-Sounds</button>
-    <button class="btn alt" data-cmd="radar">📡 Radar</button>
-    <button class="btn alt" data-cmd="kampagnen">💰 Kampagnen</button>
+    <button class="btn" data-cmd="auswahl">🎯 Clips auswählen</button>
+    <button class="btn" data-cmd="heute">📅 Heute</button>
   </div>
+  <details class="more" data-tab="pz"><summary>Mehr Werkzeuge</summary>
+    <div class="btns" style="display:grid">
+      <button class="btn alt" data-cmd="neue_videos">📺 Neue Videos</button>
+      <button class="btn alt" data-cmd="potenzial">🎯 Potenzial</button>
+      <button class="btn alt" data-cmd="kampagnen">💰 Kampagnen</button>
+      <button class="btn alt" data-cmd="plan">🗓 Woche planen</button>
+      <button class="btn alt" data-cmd="live">🔴 Live prüfen</button>
+      <button class="btn alt" data-cmd="radar">📡 Radar</button>
+      <button class="btn alt" data-cmd="recycling">♻️ Recycling</button>
+      <button class="btn alt" data-cmd="sound">🎵 Trend-Sounds</button>
+    </div></details>
   <div class="foot" id="foot">Daten kommen direkt von deinem Jarvis – nichts davon liegt auf dieser Webseite.</div>
 </div>
 <div class="toast" id="toast"></div>
