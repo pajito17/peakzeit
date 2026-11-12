@@ -208,6 +208,8 @@ body:not(.pz) .ring.r3{border-top-color:#5CE1FF;filter:drop-shadow(0 0 10px #5CE
 
   <div class="card" data-tab="pz" id="c_plan"><h3>Heute posten <em id="plan_n"></em></h3><div class="tl" id="plan"></div></div>
 
+  <div class="card" data-tab="jv" id="c_day" style="display:none"><h3>Dein Tag <em id="day_n"></em></h3><div id="day"></div></div>
+
   <div class="card money" data-tab="jv" id="c_money" style="display:none"><h3>Geld · 30 Tage <em id="m_days"></em></h3>
     <div style="margin-top:10px"><b class="tot" id="m_tot">0 €</b> <span style="color:var(--m)" id="m_goal"></span></div>
     <div class="bar2"><i id="m_bar"></i></div>
@@ -300,7 +302,7 @@ const dayKey = "pz_posted_" + new Date().toISOString().slice(0, 10); let posted 
 try { posted = JSON.parse(localStorage.getItem(dayKey) || "{}"); } catch (e) {}
 function renderPlan(){
   $("plan").innerHTML = plan.length ? plan.map((p, i) => { const done = p.t < nowHM, now = !done && !nextMarked && !posted[i]; if (now) nextMarked = true;
-    return `<div class="ev ${done ? "done" : ""} ${now ? "now" : ""} ${posted[i] ? "posted" : ""}"><b><span>${esc(p.t)}</span>${esc(p.title)}</b>
+    return `<div class="ev ${done ? "done" : ""} ${now ? "now" : ""} ${posted[i] ? "posted" : ""}"><b><span>${esc(p.t)}</span>${p.pk ? "✅ " : "💡 "}${esc(p.title)}</b>
       <small>${p.caption ? "💬 " + esc(p.caption) + "<br>" : ""}${esc((p.tags || []).join(" "))}${p.sound ? "<br>🎵 " + esc(p.sound) : ""}</small>
       <div class="acts"><button data-copy="${i}">📋 Text kopieren</button><button data-post="${i}" class="${posted[i] ? "ok" : ""}">${posted[i] ? "✓ Gepostet" : "Gepostet?"}</button></div></div>`; }).join("")
     : `<div class="empty">Für heute ist nichts geplant – tipp unten auf „Woche planen“.</div>`;
@@ -479,6 +481,13 @@ if (CS) CS.getItem("pz_done", (e, v) => { if (!e && v){ try { done = JSON.parse(
   const b = (P.follower || P.likes || P.aufrufe || {}).basis_tage; $("pg_basis_" + k).textContent = b ? `Basis ${b} Tage` : "";
   const z = P.ziel || []; if (z[0] && P.follower){ $("pg_goal_" + k).innerHTML = z[1] ? `🎯 <b>${fmt(z[0])} Follower</b> in ca. <b>${z[1]} Tagen</b>` + (P.posts_pro_tag ? ` · bei ${P.posts_pro_tag} Posts/Tag` : "") : `🎯 Nächstes Ziel: ${fmt(z[0])} Follower – dafür muss das Wachstum anziehen`;
     setTimeout(() => $("pg_bar_" + k).style.width = Math.min(100, P.follower.jetzt / z[0] * 100) + "%", 500); } });
+// Tagesplan (nur Pio): Ziele zum Abhaken
+(function(){ const Dd = D.day; if (FAM || !Dd) return; $("c_day").style.display = "";
+  const rows = [[Dd.picked >= 3, `3 Clips posten · ${Dd.picked}/3 ausgewählt`, Dd.picked >= 3 ? "" : "auswahl", "🎯 Auswählen"],
+                [Dd.dz, "1 DropZone-Video (gesichtslos)", Dd.dz ? "" : "dropzone", "🛍 Drehbuch"]];
+  $("day_n").textContent = rows.filter(r => r[0]).length + "/2 Ziele" + (rows.every(r => r[0]) ? " 🔥" : "");
+  $("day").innerHTML = rows.map((r, i) => `<div class="it ${r[0] ? "done" : ""}" style="animation-delay:${i * 80}ms"><span class="cb"></span><span class="nm">${esc(r[1])}</span>${r[2] ? `<button class="mini" data-go2="${r[2]}">${r[3]}</button>` : ""}</div>`).join("");
+  $("day").querySelectorAll("[data-go2]").forEach(b => b.onclick = e => { e.stopPropagation(); send("/" + b.dataset.go2); }); })();
 if (D.ruhe){ $("ruhe").style.display = ""; $("ruhe").textContent = "🌙 Ruhezeit " + D.ruhe + " · Dringendes kommt trotzdem"; }
 // Hintergrund: Sterne + Lichtpunkte
 const cv = $("bg"), cx = cv.getContext("2d"); let W, H, P = [];
