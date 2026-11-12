@@ -243,7 +243,8 @@ body:not(.pz) .ring.r3{border-top-color:#5CE1FF;filter:drop-shadow(0 0 10px #5CE
 
   <div class="card" data-tab="jv" id="c_notes" style="display:none"><h3>Notizen</h3><div id="notes"></div></div>
 
-  <div class="card" data-tab="pz" id="c_clips"><h3>Letzte Clips <em>antippen = aufs Handy</em></h3><div id="clips"></div></div>
+  <div class="card" data-tab="pz" id="c_clips"><h3>Deine Clips <em id="clips_n">aussortieren</em></h3><div id="clips"></div>
+    <button class="doit" id="wegbar" style="display:none" onclick="flushWeg()"></button></div>
 
   <div class="card" data-tab="pz" id="c_radar"><h3>Konkurrenz-Radar</h3><div id="radar"></div></div>
 
@@ -340,8 +341,18 @@ $("agenda").innerHTML = ag.length ? ag.map(a => `<div class="ev ${a.t && a.t < n
 const lives = D.live || []; if (lives.length){ $("c_live").style.display = "";
   $("lives").innerHTML = lives.map((l, i) => `<div class="live"><span class="d"></span><b>${esc(l.name)}</b><small>${esc(l.p)}</small>${l.rec ? `<button class="mini stop" data-rec="/stopp">⏹ Stopp</button>` : `<button class="mini" data-rec="/mitschneiden ${i}">✂️ Mitschneiden</button>`}</div>`).join(""); }
 const clips = D.clips || [];
-$("clips").innerHTML = clips.length ? clips.map((c, i) => `<div class="li tap" data-clip="${esc(c.title)}">${c.s != null ? ring(c.s) : `<span class="n">${i + 1}</span>`}<div>${esc(c.title)}<br><small>${esc(c.who || "")} · ${esc(c.when || "")}</small></div><span class="go">↓</span></div>`).join("")
-  : `<div class="empty">Noch keine fertigen Clips.</div>`;
+const WEG = [];
+$("clips_n").textContent = (D.clips_open || clips.length) + " offen · letzte 3 Tage";
+$("clips").innerHTML = clips.length ? clips.map((c, i) => `<div class="li cl" data-i="${i}">${c.s != null ? ring(c.s) : `<span class="n">${i + 1}</span>`}<div>${esc(c.title)}<br><small>${esc(c.who || "")} · ${esc(c.when || "")}</small>
+    <div class="acts"><button data-cv="${esc(c.id)}">👀 Ansehen</button><button data-cw="${esc(c.id)}">🗑 Weg</button><button data-cm="${esc(c.id)}">🔄 Neue Momente</button></div></div></div>`).join("")
+  : `<div class="empty">Alles sortiert 🎉 – neue Clips bekommst du über „Neue Videos“.</div>`;
+$("clips").querySelectorAll("[data-cv]").forEach(b => b.onclick = e => { e.stopPropagation(); haptic("ok"); send("/clipvorschau " + b.dataset.cv); });
+$("clips").querySelectorAll("[data-cm]").forEach(b => b.onclick = e => { e.stopPropagation(); haptic("ok"); send("/mehr " + b.dataset.cm); });
+$("clips").querySelectorAll("[data-cw]").forEach(b => b.onclick = e => { e.stopPropagation(); haptic("ok"); const row = b.closest(".li");
+  row.style.transition = "all .35s"; row.style.opacity = "0"; row.style.transform = "translateX(60px)"; setTimeout(() => row.remove(), 360);
+  WEG.push(b.dataset.cw); const bar = $("wegbar"); bar.style.display = ""; bar.textContent = `🗑 ${WEG.length} Clip(s) wegräumen – tippen zum Bestätigen`;
+  if (WEG.length >= 4) flushWeg(); });
+function flushWeg(){ if (!WEG.length) return; const ids = WEG.splice(0, 4); $("wegbar").style.display = "none"; send("/weg " + ids.join(",")); }
 const rad = D.radar || [];
 $("radar").innerHTML = rad.length ? rad.map(r => `<div class="li"><span class="n">@</span><div>@${esc(r.h)}<br><small>${fmt(r.f)} Follower · +${fmt(Math.max(0, r.w || 0))} / Woche${r.top ? " · Top: " + esc(r.top) : ""}</small></div></div>`).join("")
   : `<div class="empty">Noch kein Kanal im Radar – im Chat: „Beobachte @kanal“.</div>`;
