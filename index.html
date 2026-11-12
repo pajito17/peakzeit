@@ -116,6 +116,11 @@ canvas#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
 @keyframes draw{to{stroke-dashoffset:0}}@keyframes fade{to{opacity:1}}
 .ax{display:flex;justify-content:space-between;color:var(--m);font-size:11px;margin-top:4px}
 .goal{margin-top:12px;font-size:13px;color:var(--m)}.goal b{color:#fff}
+/* Woche */
+.wk{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.wk div{padding:12px;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);text-align:center;animation:pop .5s both}
+.wk b{display:block;font-size:22px;font-weight:900}.wk small{color:var(--m);font-size:11px;font-weight:700;letter-spacing:.08em}
+.tip{margin-top:8px;padding:10px 12px;border-radius:14px;background:rgba(92,225,255,.08);border-left:3px solid var(--c);font-size:14px;animation:pop .5s both}
 /* Einkaufsliste */
 .tabs{display:flex;gap:8px;margin-top:12px;overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
 .tab{flex:none;padding:8px 14px;border-radius:999px;font-weight:800;font-size:13px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;transition:all .25s}
@@ -157,6 +162,9 @@ canvas#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
   <div class="card" id="c_fc" style="display:none"><h3>Follower-Verlauf <em id="fc_delta"></em></h3>
     <div class="chart" id="fc"></div><div class="ax" id="fc_ax"></div>
     <div class="goal" id="fc_goal"></div><div class="bar2"><i id="fc_bar"></i></div></div>
+
+  <div class="card" id="c_week" style="display:none"><h3>Deine Woche <em id="wk_r"></em></h3>
+    <div class="wk" id="wk"></div><div id="wk_best"></div><div id="wk_tips"></div></div>
 
   <div class="card" id="c_plan"><h3>Heute posten <em id="plan_n"></em></h3><div class="tl" id="plan"></div></div>
 
@@ -324,6 +332,15 @@ if (CS) CS.getItem("pz_done", (e, v) => { if (!e && v){ try { done = JSON.parse(
   const perDay = gain / span, left = goal - now;
   $("fc_goal").innerHTML = `Noch <b>${fmt(left)}</b> bis <b>${fmt(goal)}</b>` + (perDay > 0 ? ` · bei diesem Tempo in ca. <b>${Math.ceil(left / perDay)} Tagen</b>` : "");
   setTimeout(() => $("fc_bar").style.width = Math.min(100, (now - prev) / Math.max(1, goal - prev) * 100) + "%", 400);
+})();
+// Woche
+(function(){ const w = D.week || {}; if (w.f == null && !w.c) return; $("c_week").style.display = ""; $("wk_r").textContent = w.r || "";
+  const sg = v => v == null ? "–" : (v > 0 ? "+" : "") + fmt(v);
+  $("wk").innerHTML = [["FOLLOWER", sg(w.f)], ["LIKES", sg(w.l)], ["CLIPS", fmt(w.c || 0)]].map((x, i) => `<div style="animation-delay:${i * 90}ms"><b>${x[1]}</b><small>${x[0]}</small></div>`).join("");
+  $("wk_best").innerHTML = (w.best || []).length ? `<div class="list" style="margin-top:10px">` + w.best.map((b, i) => `<div class="li tap" data-clip="${esc(b.t)}"><b style="color:var(--y);width:22px">${i + 1}</b><div style="flex:1">${esc(b.t)}</div>${b.s ? `<small>${Number(b.s).toFixed(1)}</small>` : ""}</div>`).join("") + "</div>" : "";
+  $("wk_tips").innerHTML = (w.tips || []).map((t, i) => `<div class="tip" style="animation-delay:${200 + i * 120}ms">💡 ${esc(t)}</div>`).join("") +
+    (w.n ? `<div class="goal">Nächste Woche: <b>${w.n} Posts</b> geplant</div>` : "");
+  $("wk_best").querySelectorAll("[data-clip]").forEach(el => el.onclick = () => send(("/clip " + el.dataset.clip).slice(0, 46)));
 })();
 if (D.ruhe){ $("ruhe").style.display = ""; $("ruhe").textContent = "🌙 Ruhezeit " + D.ruhe + " · Dringendes kommt trotzdem"; }
 // Hintergrund: Sterne + Lichtpunkte
