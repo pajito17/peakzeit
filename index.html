@@ -187,6 +187,8 @@ body:not(.pz) .ring.r3{border-top-color:#5CE1FF;filter:drop-shadow(0 0 10px #5CE
 .doit small{display:block;font-weight:600;font-size:11.5px;opacity:.85;margin-top:2px}
 .doit::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);transform:translateX(-100%);animation:shine 2.8s infinite}
 @keyframes shine{60%,100%{transform:translateX(100%)}}
+.wd{margin-top:10px} .wd b{font-size:12px;letter-spacing:2px;color:#ffd166;text-transform:uppercase}
+.wi{display:flex;gap:10px;font-size:14px;padding:7px 10px;margin-top:5px;border-radius:10px;background:rgba(255,255,255,.04)} .wi span{color:#5ce1ff;font-weight:800}
 </style>
 </head>
 <body>
@@ -218,6 +220,7 @@ body:not(.pz) .ring.r3{border-top-color:#5CE1FF;filter:drop-shadow(0 0 10px #5CE
   <div class="card" data-tab="pz" id="c_week" style="display:none"><h3>Deine Woche <em id="wk_r"></em></h3>
     <div class="wk" id="wk"></div><div id="wk_best"></div><div id="wk_tips"></div></div>
 
+  <div class="card" data-tab="pz" id="c_wplan" style="display:none"><h3>Eingeplant <em id="wp_n"></em></h3><div id="wplan"></div></div>
   <div class="card" data-tab="pz" id="c_plan"><h3>Heute posten <em id="plan_n"></em></h3><div class="tl" id="plan"></div></div>
 
   <div class="card brief" data-tab="jv" id="c_brief" style="display:none"><h3 id="br_t">Seit du weg warst <em id="br_away"></em></h3>
@@ -509,6 +512,13 @@ if (CS) CS.getItem("pz_done", (e, v) => { if (!e && v){ try { done = JSON.parse(
   const b = (P.follower || P.likes || P.aufrufe || {}).basis_tage; $("pg_basis_" + k).textContent = b ? `Basis ${b} Tage` : "";
   const z = P.ziel || []; if (z[0] && P.follower){ $("pg_goal_" + k).innerHTML = z[1] ? `🎯 <b>${fmt(z[0])} Follower</b> in ca. <b>${z[1]} Tagen</b>` + (P.posts_pro_tag ? ` · bei ${P.posts_pro_tag} Posts/Tag` : "") : `🎯 Nächstes Ziel: ${fmt(z[0])} Follower – dafür muss das Wachstum anziehen`;
     setTimeout(() => $("pg_bar_" + k).style.width = Math.min(100, P.follower.jetzt / z[0] * 100) + "%", 500); } });
+// Eingeplante Posts der nächsten Tage
+(function(){ const W = D.week_plan || []; if (FAM || !W.length) return; $("c_wplan").style.display = "";
+  const DN = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"]; let n = 0;
+  $("wplan").innerHTML = W.map(g => { const d = new Date(g.day + "T12:00"); n += g.items.length;
+    return `<div class="wd"><b>${DN[d.getDay()]} ${d.toLocaleDateString("de-DE", {day: "2-digit", month: "2-digit"})}</b>` +
+      g.items.map(i => `<div class="wi"><span>${esc(i.t)}</span>${esc(i.title)}</div>`).join("") + `</div>`; }).join("");
+  $("wp_n").textContent = n + " Posts"; })();
 // „Seit du weg warst“ + klügster nächster Schritt (nur Pio)
 (function(){ const B = D.brief; if (FAM || !B) return; $("c_brief").style.display = "";
   $("br_t").firstChild.textContent = B.away ? "Seit du weg warst " : "Dein Überblick "; $("br_away").textContent = B.away ? "vor " + B.away : "";
