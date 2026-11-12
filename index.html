@@ -178,6 +178,15 @@ body:not(.pz) .ring.r3{border-top-color:#5CE1FF;filter:drop-shadow(0 0 10px #5CE
 .sum{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding:12px 14px;border-radius:16px;background:color-mix(in srgb,var(--y) 8%,transparent);border:1px solid color-mix(in srgb,var(--y) 25%,transparent)}
 .sum small{color:var(--m);font-size:12px;display:block}.sum b{font-size:22px;font-weight:900;color:var(--y);font-variant-numeric:tabular-nums}
 .bar2{height:6px;border-radius:6px;background:rgba(255,255,255,.08);margin-top:10px;overflow:hidden}.bar2 i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--g),var(--y));transition:width .5s}
+.brief .bi{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;line-height:1.45;padding:8px 10px;margin-top:6px;border-radius:12px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);opacity:0;transform:translateX(12px);animation:bin .5s cubic-bezier(.2,1,.3,1) forwards}
+.brief .bi i{font-style:normal} .brief .bi b{color:#ffd166} .brief .bi.go{cursor:pointer}
+@keyframes bin{to{opacity:1;transform:none}}
+.doit{margin-top:12px;width:100%;padding:13px 14px;border-radius:15px;border:0;text-align:left;color:#fff;font-weight:900;font-size:15px;
+  background:linear-gradient(100deg,#ff2d55,#ff6a3d);box-shadow:0 10px 30px rgba(255,45,85,.35);position:relative;overflow:hidden}
+.doit small{display:block;font-weight:600;font-size:11.5px;opacity:.85;margin-top:2px}
+.doit::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);transform:translateX(-100%);animation:shine 2.8s infinite}
+@keyframes shine{60%,100%{transform:translateX(100%)}}
 </style>
 </head>
 <body>
@@ -211,6 +220,8 @@ body:not(.pz) .ring.r3{border-top-color:#5CE1FF;filter:drop-shadow(0 0 10px #5CE
 
   <div class="card" data-tab="pz" id="c_plan"><h3>Heute posten <em id="plan_n"></em></h3><div class="tl" id="plan"></div></div>
 
+  <div class="card brief" data-tab="jv" id="c_brief" style="display:none"><h3 id="br_t">Seit du weg warst <em id="br_away"></em></h3>
+    <div id="br_items"></div><button class="doit" id="br_do"></button></div>
   <div class="card" data-tab="jv" id="c_day" style="display:none"><h3>Dein Tag <em id="day_n"></em></h3><div id="day"></div></div>
 
   <div class="card money" data-tab="jv" id="c_money" style="display:none"><h3>Geld · 30 Tage <em id="m_days"></em></h3>
@@ -487,6 +498,14 @@ if (CS) CS.getItem("pz_done", (e, v) => { if (!e && v){ try { done = JSON.parse(
   const b = (P.follower || P.likes || P.aufrufe || {}).basis_tage; $("pg_basis_" + k).textContent = b ? `Basis ${b} Tage` : "";
   const z = P.ziel || []; if (z[0] && P.follower){ $("pg_goal_" + k).innerHTML = z[1] ? `🎯 <b>${fmt(z[0])} Follower</b> in ca. <b>${z[1]} Tagen</b>` + (P.posts_pro_tag ? ` · bei ${P.posts_pro_tag} Posts/Tag` : "") : `🎯 Nächstes Ziel: ${fmt(z[0])} Follower – dafür muss das Wachstum anziehen`;
     setTimeout(() => $("pg_bar_" + k).style.width = Math.min(100, P.follower.jetzt / z[0] * 100) + "%", 500); } });
+// „Seit du weg warst“ + klügster nächster Schritt (nur Pio)
+(function(){ const B = D.brief; if (FAM || !B) return; $("c_brief").style.display = "";
+  $("br_t").firstChild.textContent = B.away ? "Seit du weg warst " : "Dein Überblick "; $("br_away").textContent = B.away ? "vor " + B.away : "";
+  const its = B.items.length ? B.items : [{icon: "✨", text: "Alles ruhig – nichts Neues."}];
+  $("br_items").innerHTML = its.map((it, i) => `<div class="bi ${it.cmd ? "go" : ""}" style="animation-delay:${150 + i * 110}ms" ${it.cmd ? `data-cmd="${esc(it.cmd)}"` : ""}><i>${it.icon}</i><span>${it.text}</span></div>`).join("");
+  $("br_items").querySelectorAll("[data-cmd]").forEach(n => n.onclick = () => { haptic("ok"); send(n.dataset.cmd); });
+  const a = B.action || {}; $("br_do").innerHTML = `👉 ${esc(a.label || "")}<small>${esc(a.why || "")}</small>`;
+  $("br_do").onclick = () => { haptic("ok"); if (a.cmd) send(a.cmd); }; })();
 // Tagesplan (nur Pio): Ziele zum Abhaken
 (function(){ const Dd = D.day; if (FAM || !Dd) return; $("c_day").style.display = "";
   const rows = [[Dd.picked >= 3, `3 Clips posten · ${Dd.picked}/3 ausgewählt`, Dd.picked >= 3 ? "" : "auswahl", "🎯 Auswählen"],
