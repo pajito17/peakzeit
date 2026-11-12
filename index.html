@@ -101,6 +101,24 @@ canvas#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
 .mini.stop{background:rgba(255,255,255,.12);color:#fff}
 .pill{display:inline-block;margin-top:8px;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;background:rgba(92,225,255,.12);color:var(--c);border:1px solid rgba(92,225,255,.3)}
 .btns{grid-template-columns:1fr 1fr}
+/* Einkaufsliste */
+.tabs{display:flex;gap:8px;margin-top:12px;overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;padding:8px 14px;border-radius:999px;font-weight:800;font-size:13px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;transition:all .25s}
+.tab b{margin-left:6px;color:var(--m);font-weight:700}
+.tab.on{background:var(--y);color:#111;box-shadow:0 6px 22px rgba(255,230,0,.3)}.tab.on b{color:#111}
+.shop{margin-top:10px}
+.it{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid rgba(255,255,255,.06);transition:opacity .35s,transform .35s;animation:pop .45s both}
+@keyframes pop{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
+.it .cb{width:24px;height:24px;border-radius:8px;border:2px solid rgba(255,230,0,.6);flex:none;display:flex;align-items:center;justify-content:center;transition:all .25s}
+.it.done .cb{background:var(--g);border-color:var(--g);transform:scale(1.1)}
+.it.done .cb:after{content:"✓";color:#111;font-weight:900;font-size:14px}
+.it .nm{flex:1;font-size:15px;transition:color .3s}
+.it.done .nm{color:var(--m);text-decoration:line-through}
+.it .q{color:var(--y);font-weight:800;margin-right:6px}
+.it .pr{font-weight:800;font-size:14px;font-variant-numeric:tabular-nums}.it .pr i{font-style:normal;color:var(--m);font-weight:600;font-size:11px;margin-right:3px}
+.sum{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding:12px 14px;border-radius:16px;background:rgba(255,230,0,.08);border:1px solid rgba(255,230,0,.25)}
+.sum small{color:var(--m);font-size:12px;display:block}.sum b{font-size:22px;font-weight:900;color:var(--y);font-variant-numeric:tabular-nums}
+.bar2{height:6px;border-radius:6px;background:rgba(255,255,255,.08);margin-top:10px;overflow:hidden}.bar2 i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--g),var(--y));transition:width .5s}
 </style>
 </head>
 <body>
@@ -122,6 +140,12 @@ canvas#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
   <div class="card" id="c_live" style="display:none"><h3>Gerade live</h3><div id="lives"></div></div>
 
   <div class="card" id="c_plan"><h3>Heute posten <em id="plan_n"></em></h3><div class="tl" id="plan"></div></div>
+
+  <div class="card" id="c_shop"><h3>Einkaufsliste <em id="shop_tot"></em></h3>
+    <div class="tabs" id="tabs"></div><div class="shop" id="shop"></div>
+    <div class="bar2"><i id="shop_prog"></i></div>
+    <div class="sum"><div><small id="shop_lbl">Noch zu kaufen</small><b id="shop_sum">0,00 €</b></div><button class="mini" id="shop_done" style="display:none">✓ Einkauf fertig</button></div>
+  </div>
 
   <div class="card" id="c_agenda"><h3>Termine &amp; Aufgaben</h3><div class="tl" id="agenda"></div></div>
 
@@ -204,14 +228,49 @@ function send(text){
   setTimeout(() => { tg.openTelegramLink(`https://t.me/${bot}` + (start ? `?start=${start}` : "")); setTimeout(() => tg.close(), 300); }, 300);
 }
 document.querySelectorAll("[data-cmd]").forEach(b => b.onclick = () => send("/" + b.dataset.cmd));
-const CHIPS = ["Wie weit bist du?", "Was poste ich heute?", "Neue Follower?", "Wer ist live?",
+const CHIPS = ["Wie weit bist du?", "Was poste ich heute?", "🛒 Auf die Liste …", "Neue Follower?", "Wer ist live?",
   ...(rad[0] ? [`Clips vom neuesten Video von ${rad[0].h}`.slice(0, 46)] : []), "Plane meine Woche", "Stopp"];
 $("chips").innerHTML = CHIPS.map(c => `<button class="chip">${esc(c)}</button>`).join("");
-$("chips").querySelectorAll(".chip").forEach(b => b.onclick = () => send(b.textContent));
+$("chips").querySelectorAll(".chip").forEach(b => b.onclick = () => {
+  if (b.textContent.startsWith("🛒")){ const st = (SH.stores[shopTab] || {}).n || "Lidl"; const q = $("q"); q.value = ` auf die ${st}-Liste`; q.focus();
+    try { q.setSelectionRange(0, 0); } catch (e) {} haptic("light"); return; }
+  send(b.textContent); });
 $("bar").onsubmit = e => { e.preventDefault(); const v = $("q").value; $("q").value = ""; $("q").blur(); send(v); };
 // Clips antippen = aufs Handy schicken, Live = mitschneiden
 document.querySelectorAll("[data-clip]").forEach(el => el.onclick = () => send(("/clip " + el.dataset.clip).slice(0, 46)));
 document.querySelectorAll("[data-rec]").forEach(el => el.onclick = e => { e.stopPropagation(); send(el.dataset.rec); });
+// Einkaufsliste: abhaken bleibt in der App gespeichert (Telegram-Cloud), „Einkauf fertig“ meldet es Jarvis
+const SH = D.shop || {stores: []}; const eur = v => (v || 0).toLocaleString("de-DE", {style: "currency", currency: "EUR"});
+let shopTab = 0, done = {};
+const CS = tg && tg.CloudStorage && tg.isVersionAtLeast && tg.isVersionAtLeast("6.9") ? tg.CloudStorage : null;
+function saveDone(){ const v = JSON.stringify(done); try { localStorage.setItem("pz_done", v); } catch (e) {} if (CS) CS.setItem("pz_done", v); }
+function renderShop(){
+  if (!SH.stores.length){ $("tabs").innerHTML = ""; $("shop").innerHTML = `<div class="empty">Leer. Schreib unten z. B. „Milch und Eier auf die Lidl-Liste“.</div>`;
+    $("shop_sum").textContent = eur(0); return; }
+  $("shop_tot").textContent = "gesamt " + eur(SH.total);
+  $("tabs").innerHTML = SH.stores.map((s, i) => `<button class="tab ${i === shopTab ? "on" : ""}" data-t="${i}">${esc(s.n)}<b>${s.items.length}</b></button>`).join("");
+  $("tabs").querySelectorAll(".tab").forEach(b => b.onclick = () => { haptic("light"); shopTab = +b.dataset.t; renderShop(); });
+  const st = SH.stores[shopTab];
+  $("shop").innerHTML = st.items.map((it, k) => `<div class="it ${done[it.i] ? "done" : ""}" data-i="${it.i}" style="animation-delay:${k * 45}ms">
+    <span class="cb"></span><span class="nm">${it.q ? `<span class="q">${esc(it.q)}</span>` : ""}${esc(it.x)}</span>
+    <span class="pr">${it.p != null ? (it.e ? "<i>ca.</i>" : "") + eur(it.p) : "<i>…</i>"}</span></div>`).join("");
+  $("shop").querySelectorAll(".it").forEach(el => el.onclick = () => { const id = el.dataset.i; done[id] = !done[id]; if (!done[id]) delete done[id];
+    haptic(done[id] ? "ok" : "light"); el.classList.toggle("done", !!done[id]); saveDone(); sums(); });
+  sums();
+}
+function sums(){ const st = SH.stores[shopTab]; if (!st) return;
+  const open = st.items.filter(i => !done[i.i]), left = open.reduce((a, i) => a + (i.p || 0), 0), n = st.items.length - open.length;
+  countTo($("shop_sum"), left); $("shop_prog").style.width = (st.items.length ? n / st.items.length * 100 : 0) + "%";
+  $("shop_lbl").textContent = n ? `Noch zu kaufen · ${n}/${st.items.length} im Wagen` : `Noch zu kaufen bei ${st.n}`;
+  $("shop_done").style.display = n ? "" : "none"; }
+let sumNow = 0; function countTo(el, to){ const from = sumNow, t0 = performance.now(); sumNow = to;
+  (function f(t){ const p = Math.min(1, (t - t0) / 450); el.textContent = eur(from + (to - from) * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(f); })(t0); }
+$("shop_done").onclick = () => { const st = SH.stores[shopTab]; const ids = st.items.filter(i => done[i.i]).map(i => i.i);
+  const all = ids.length === st.items.length; ids.forEach(i => delete done[i]); saveDone();
+  send(`/einkauf_fertig ${st.n} ${all ? "alle" : ids.join(",")}`); };
+try { done = JSON.parse(localStorage.getItem("pz_done") || "{}"); } catch (e) {}
+renderShop();
+if (CS) CS.getItem("pz_done", (e, v) => { if (!e && v){ try { done = JSON.parse(v) || {}; renderShop(); } catch (x) {} } });
 if (D.ruhe){ $("ruhe").style.display = ""; $("ruhe").textContent = "🌙 Ruhezeit " + D.ruhe + " · Dringendes kommt trotzdem"; }
 // Hintergrund: Sterne + Lichtpunkte
 const cv = $("bg"), cx = cv.getContext("2d"); let W, H, P = [];
