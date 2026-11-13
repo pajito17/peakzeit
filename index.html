@@ -382,7 +382,7 @@ document.querySelectorAll("[data-cmd]").forEach(b => b.onclick = () => send("/" 
 const FAM = D.role === "familie";
 const CH = {jv: ["Was steht heute an?", "🛒 Auf die Liste …", "Hab ich was vergessen?", "Was koche ich heute?", FAM ? "Sag Pio, …" : "Sag Aurora, …"],
             dz: ["Was poste ich heute bei DropZone?", "Analysier mein letztes Video", "Provision …", "Gib mir 3 Ideen ohne Produkt"],
-            pz: ["Wie weit bist du?", "Was poste ich heute?", "Neue Follower?", "Wer ist live?",
+            pz: ["#️⃣ Hashtags fürs nächste Video", "Wie weit bist du?", "Was poste ich heute?", "Neue Follower?", "Wer ist live?",
                  ...(rad[0] ? [`Clips vom neuesten Video von ${rad[0].h}`.slice(0, 46)] : []), "Plane meine Woche", "Stopp"]};
 let TAB = "jv";
 try { const lt = localStorage.getItem("pz_tab"); if (!FAM && (lt === "pz" || lt === "dz")) TAB = lt; } catch (e) {}
