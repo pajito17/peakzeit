@@ -189,6 +189,23 @@ body:not(.pz) .ring.r3{border-top-color:#5CE1FF;filter:drop-shadow(0 0 10px #5CE
 @keyframes shine{60%,100%{transform:translateX(100%)}}
 .wd{margin-top:10px} .wd b{font-size:12px;letter-spacing:2px;color:#ffd166;text-transform:uppercase}
 .wi{display:flex;gap:10px;font-size:14px;padding:7px 10px;margin-top:5px;border-radius:10px;background:rgba(255,255,255,.04)} .wi span{color:#5ce1ff;font-weight:800}
+
+/* ---------- Selbst schneiden ---------- */
+.cutin{display:flex;gap:8px;margin-top:10px}.cutin input{flex:1;min-width:0;padding:11px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;font:inherit}
+.cutin button,#cutv .b{padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.07);color:#fff;font:inherit;font-weight:700}
+#cutv{position:fixed;inset:0;z-index:80;background:#05060a;display:none;flex-direction:column;padding:calc(env(safe-area-inset-top) + 10px) 14px calc(env(safe-area-inset-bottom) + 14px)}
+#cutv.on{display:flex}
+#cutv .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}#cutv .top b{font-size:17px}
+#cutv .pl{position:relative;width:100%;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#000;border:1px solid rgba(255,255,255,.1)}
+#cutv .pl iframe,#cutv .pl>div{position:absolute;inset:0;width:100%;height:100%}
+#cutv .now{text-align:center;font:700 30px/1.2 "JetBrains Mono",Consolas,monospace;margin:14px 0 4px;letter-spacing:.02em}
+#cutv .row{display:flex;gap:8px;margin-top:8px}#cutv .row .b{flex:1}
+#cutv .mk{padding:14px 0;font-size:15px}#cutv .mk.s{background:rgba(92,225,255,.14);border-color:rgba(92,225,255,.5)}#cutv .mk.e{background:rgba(255,45,85,.16);border-color:rgba(255,45,85,.55)}
+#cutv .sel{margin-top:12px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);font-size:14px;line-height:1.6}
+#cutv .sel b{font-family:"JetBrains Mono",Consolas,monospace}
+#cutv .fmt{display:flex;gap:8px;margin-top:10px}#cutv .fmt .b{flex:1}#cutv .fmt .b.on{background:rgba(255,45,85,.22);border-color:#ff2d55}
+#cutv .go{margin-top:auto;padding:15px;border:0;border-radius:14px;font:inherit;font-weight:800;font-size:16px;color:#fff;background:linear-gradient(100deg,#ff2d55,#ff7a59);box-shadow:0 12px 30px -8px rgba(255,45,85,.6)}
+#cutv .go:disabled{opacity:.4}
 /*NOVA-START*/
 /* ==========================================================================
    NOVA – Jarvis Design 6. Gilt für ALLE Seiten (wird von tools/apply_theme.py
@@ -353,6 +370,9 @@ body::before{animation-duration:90s!important}
   <div class="card" data-tab="pz" id="c_week" style="display:none"><h3>Deine Woche <em id="wk_r"></em></h3>
     <div class="wk" id="wk"></div><div id="wk_best"></div><div id="wk_tips"></div></div>
 
+  <div class="card" data-tab="pz" id="c_cut"><h3>✂️ Selbst schneiden <em>im ganzen Video</em></h3>
+    <div class="cutin"><input id="cut_link" placeholder="YouTube-Link einfügen …" inputmode="url"><button id="cut_go">Öffnen</button></div>
+    <div class="hint" id="cut_last"></div></div>
   <div class="card" data-tab="pz" id="c_clips"><h3>🎯 Clips für heute wählen <em id="clips_n">aussortieren</em></h3><div id="clips"></div>
     <button class="doit" id="wegbar" style="display:none" onclick="flushWeg()"></button></div>
   <div class="card" data-tab="pz" id="c_wplan" style="display:none"><h3>Eingeplant <em id="wp_n"></em></h3><div id="wplan"></div></div>
@@ -425,6 +445,14 @@ body::before{animation-duration:90s!important}
   <div class="chips" id="chips"></div>
   <form class="bar" id="bar"><input id="q" placeholder="Frag Jarvis …" autocomplete="off" enterkeyhint="send"><button type="submit">➤</button></form>
 </div></div>
+<div id="cutv"><div class="top"><b>✂️ Selbst schneiden</b><button class="b" id="cut_x">Schließen</button></div>
+  <div class="pl"><div id="ytp"></div></div>
+  <div class="now" id="cut_now">0:00</div>
+  <div class="row"><button class="b" data-j="-10">⏪ 10</button><button class="b" data-j="-3">⏪ 3</button><button class="b" data-j="-1">−1</button><button class="b" data-j="1">+1</button><button class="b" data-j="3">3 ⏩</button><button class="b" data-j="10">10 ⏩</button></div>
+  <div class="row"><button class="b mk s" id="cut_s">⏺ Start hier</button><button class="b mk e" id="cut_e">⏹ Ende hier</button></div>
+  <div class="sel" id="cut_sel">Spul zur Stelle, tippe <b>Start hier</b>, dann am Ende <b>Ende hier</b>.</div>
+  <div class="fmt"><button class="b on" data-f="h">📱 Hochformat</button><button class="b" data-f="q">🖥 Quer</button></div>
+  <button class="go" id="cut_ok" disabled>Clip schneiden lassen</button></div>
 <script>
 const tg = window.Telegram && Telegram.WebApp; if (tg){ tg.ready(); tg.expand(); try { tg.setHeaderColor("#0B0B0F"); tg.setBackgroundColor("#0B0B0F"); } catch (e) {} }
 const $ = id => document.getElementById(id);
@@ -683,6 +711,34 @@ for (let i = 0; i < 90; i++) P.push({x: Math.random(), y: Math.random(), s: Math
   P.forEach(p => { p.y -= p.v; if (p.y < 0) p.y = 1; cx.fillStyle = p.h ? "rgba(255,230,0,.8)" : "rgba(220,210,230,.45)"; cx.beginPath(); cx.arc(p.x * W, p.y * H, p.s * devicePixelRatio, 0, 6.3); cx.fill(); });
   requestAnimationFrame(loop); })();
 setTab(TAB, false);
+
+// ---------- Selbst schneiden: ganzes Video über den YouTube-Player, Start/Ende markieren, Jarvis schneidet ----------
+const CUT = {id: "", s: null, e: null, f: "h", p: null};
+const ytId = u => { const m = String(u || "").match(/(?:v=|youtu\.be\/|live\/|shorts\/|embed\/)([A-Za-z0-9_-]{11})/) || String(u || "").match(/^([A-Za-z0-9_-]{11})$/); return m ? m[1] : ""; };
+const tfmt = x => { x = Math.max(0, Math.round(x)); const h = Math.floor(x / 3600), m = Math.floor(x % 3600 / 60), s2 = x % 60;
+  return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(s2).padStart(2, "0"); };
+function cutRender(){ const s = CUT.s, e = CUT.e;
+  $("cut_sel").innerHTML = s == null ? "Spul zur Stelle, tippe <b>Start hier</b>, dann am Ende <b>Ende hier</b>." :
+    `Start <b>${tfmt(s)}</b> · Ende <b>${e == null ? "–" : tfmt(e)}</b>` + (e != null ? ` · <b>${Math.round(e - s)} s</b>` + (e - s > 180 ? " (max. 3 Min. – wird gekürzt)" : "") : "");
+  $("cut_ok").disabled = !(s != null && e != null && e - s >= 3); }
+function cutOpen(id, t){ CUT.id = id; CUT.s = CUT.e = null; cutRender(); $("cutv").classList.add("on");
+  try { localStorage.setItem("cut_last", id); } catch (e) {}
+  const mk = () => { if (CUT.p) { CUT.p.loadVideoById({videoId: id, startSeconds: t || 0}); return; }
+    CUT.p = new YT.Player("ytp", {videoId: id, playerVars: {start: Math.floor(t || 0), playsinline: 1, rel: 0, modestbranding: 1}}); };
+  if (window.YT && YT.Player) mk(); else { window.onYouTubeIframeAPIReady = mk; const sc = document.createElement("script"); sc.src = "https://www.youtube.com/iframe_api"; document.head.appendChild(sc); } }
+const cur = () => { try { return CUT.p && CUT.p.getCurrentTime ? CUT.p.getCurrentTime() : 0; } catch (e) { return 0; } };
+setInterval(() => { if ($("cutv").classList.contains("on")) $("cut_now").textContent = tfmt(cur()); }, 250);
+document.querySelectorAll("#cutv [data-j]").forEach(b => b.onclick = () => { haptic("ok"); try { CUT.p.seekTo(Math.max(0, cur() + +b.dataset.j), true); } catch (e) {} });
+$("cut_s").onclick = () => { haptic("ok"); CUT.s = cur(); if (CUT.e != null && CUT.e <= CUT.s) CUT.e = null; cutRender(); };
+$("cut_e").onclick = () => { haptic("ok"); const t = cur(); if (CUT.s == null || t <= CUT.s) { toast("Erst den Start setzen"); return; } CUT.e = t; cutRender(); };
+document.querySelectorAll("#cutv [data-f]").forEach(b => b.onclick = () => { CUT.f = b.dataset.f; document.querySelectorAll("#cutv [data-f]").forEach(x => x.classList.toggle("on", x === b)); });
+$("cut_x").onclick = () => { try { CUT.p.pauseVideo(); } catch (e) {} $("cutv").classList.remove("on"); };
+$("cut_ok").onclick = () => { try { CUT.p.pauseVideo(); } catch (e) {} send(`/wcut ${CUT.id} ${Math.floor(CUT.s)} ${Math.ceil(CUT.e)} ${CUT.f}`); };
+$("cut_go").onclick = () => { const id = ytId($("cut_link").value); if (!id) { toast("Das ist kein YouTube-Link"); return; } cutOpen(id, 0); };
+(() => { let last = ""; try { last = localStorage.getItem("cut_last") || ""; } catch (e) {}
+  if (last) { $("cut_last").innerHTML = `<button class="b" id="cut_again" style="margin-top:8px">Letztes Video wieder öffnen</button>`; $("cut_again").onclick = () => cutOpen(last, 0); }
+  const hp = new URLSearchParams(location.hash.replace(/^#/, "")); const id = ytId(hp.get("cut") || "");
+  if (id) setTimeout(() => cutOpen(id, +hp.get("t") || 0), 400); })();
 </script>
 </body>
 </html>
